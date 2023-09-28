@@ -10,45 +10,50 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/edgelesssys/uplosi/azure"
 	"github.com/edgelesssys/uplosi/uploader"
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/semver"
 	"gopkg.in/yaml.v3"
 )
 
 const (
-	configName      = "upload-image.yml"
+	configName      = "uplosi.yml"
 	timestampFormat = "20060102150405"
 )
 
 func newCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:              "upload-image",
-		Short:            "upload-image is a tool for uploading images to a cloud provider",
+		Use:              "uplosi <provider> <image>",
+		Short:            "uplosi is a tool for uploading images to a cloud provider",
 		PersistentPreRun: preRunRoot,
 		RunE:             run,
 		Args:             cobra.MatchAll(cobra.ExactArgs(2), isCSP(0)),
 	}
 	cmd.SetOut(os.Stdout)
 
+	cmd.Flags().BoolP("increment-version", "i", false, "increment version number in config after upload")
+
 	return cmd
 }
 
 func run(cmd *cobra.Command, args []string) error {
+	logger := log.New(cmd.OutOrStderr(), "", log.LstdFlags)
 	provider := args[0]
 	imagePath := args[1]
-	logger := log.New(cmd.OutOrStderr(), "", log.LstdFlags)
 
-	configFile, err := os.Open(configName)
+	flags, err := parseUploadFlags(cmd)
 	if err != nil {
-		return fmt.Errorf("opening config file: %w", err)
+		return fmt.Errorf("parsing flags: %w", err)
 	}
-	defer configFile.Close()
+
 	var config uploader.Config
-	if err := yaml.NewDecoder(configFile).Decode(&config); err != nil {
-		return fmt.Errorf("decoding config file: %w", err)
+	if err := readYAMLFile(configName, &config); err != nil {
+		return fmt.Errorf("reading config: %w", err)
 	}
 
 	var prepper Prepper
@@ -88,6 +93,56 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println(ref)
+
+	if flags.incrementVersion {
+		newVer, err := incrementSemver(config.ImageVersion)
+		if err != nil {
+			return fmt.Errorf("incrementing semver: %w", err)
+		}
+		config.ImageVersion = newVer
+		if err := writeYAMLFile(configName, config); err != nil {
+			return fmt.Errorf("writing config: %w", err)
+		}
+	}
+
+	return nil
+}
+
+type uploadFlags struct {
+	incrementVersion bool
+}
+
+func parseUploadFlags(cmd *cobra.Command) (*uploadFlags, error) {
+	incrementVersion, err := cmd.Flags().GetBool("increment-version")
+	if err != nil {
+		return nil, fmt.Errorf("getting increment-version flag: %w", err)
+	}
+	return &uploadFlags{
+		incrementVersion: incrementVersion,
+	}, nil
+}
+
+func readYAMLFile(path string, data any) error {
+	configFile, err := os.OpenFile(path, os.O_RDONLY, os.ModeAppend)
+	if err != nil {
+		return fmt.Errorf("opening file: %w", err)
+	}
+	defer configFile.Close()
+	if err := yaml.NewDecoder(configFile).Decode(data); err != nil {
+		return fmt.Errorf("decoding file: %w", err)
+	}
+	return nil
+}
+
+func writeYAMLFile(path string, data any) error {
+	configFile, err := os.OpenFile(path, os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return fmt.Errorf("opening file: %w", err)
+	}
+	defer configFile.Close()
+	if err := yaml.NewEncoder(configFile).Encode(data); err != nil {
+		return fmt.Errorf("encoding file: %w", err)
+	}
 	return nil
 }
 
@@ -112,4 +167,32 @@ type Prepper interface {
 
 type Uploader interface {
 	Upload(ctx context.Context, req *uploader.Request) (ref string, retErr error)
+}
+
+func canonicalSemver(version string) error {
+	ver := "v" + version
+	if !semver.IsValid(ver) {
+		return fmt.Errorf("invalid semver: %s", version)
+	}
+	if semver.Canonical(ver) != ver {
+		return fmt.Errorf("not canonical semver: %s", version)
+	}
+	return nil
+}
+
+func incrementSemver(version string) (string, error) {
+	canonical := strings.TrimPrefix(semver.Canonical("v"+version), "v")
+	parts := strings.Split(canonical, ".")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("splitting canonical version: %s, %v", version, parts)
+	}
+
+	patch := parts[2]
+	patchNum, err := strconv.Atoi(patch)
+	if err != nil {
+		return "", fmt.Errorf("converting patch number: %w", err)
+	}
+
+	patchNum++
+	return fmt.Sprintf("%s.%s.%d", parts[0], parts[1], patchNum), nil
 }
