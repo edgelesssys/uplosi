@@ -105,7 +105,7 @@ func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
 
 // Upload uploads an OS image to Azure.
 func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (ref string, retErr error) {
-	// ensure new image can be uploaded by deleting existing resources using the same name
+	// Ensure new image can be uploaded by deleting existing resources using the same name.
 	if err := u.ensureImageVersionDeleted(ctx); err != nil {
 		return "", fmt.Errorf("pre-cleaning: ensuring no image version using the same name exists: %w", err)
 	}
@@ -114,6 +114,15 @@ func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (ref strin
 	}
 	if err := u.ensureDiskDeleted(ctx); err != nil {
 		return "", fmt.Errorf("pre-cleaning: ensuring no temporary disk using the same name exists: %w", err)
+	}
+
+	// Ensure SIG and image definition exist.
+	// These aren't cleaned up as they are shared between images.
+	if err := u.ensureSIG(ctx); err != nil {
+		return "", fmt.Errorf("ensuring sig exists: %w", err)
+	}
+	if err := u.ensureImageDefinition(ctx); err != nil {
+		return "", fmt.Errorf("ensuring image definition exists: %w", err)
 	}
 
 	diskID, err := u.createDisk(ctx, DiskTypeNormal, req.Image, nil, req.Size)
@@ -131,13 +140,6 @@ func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (ref strin
 	if err != nil {
 		return "", fmt.Errorf("creating managed image: %w", err)
 	}
-	if err := u.ensureSIG(ctx); err != nil {
-		return "", fmt.Errorf("ensuring sig exists: %w", err)
-	}
-	if err := u.ensureImageDefinition(ctx); err != nil {
-		return "", fmt.Errorf("ensuring image definition exists: %w", err)
-	}
-
 	unsharedImageVersionID, err := u.createImageVersion(ctx, managedImageID)
 	if err != nil {
 		return "", fmt.Errorf("creating image version: %w", err)
