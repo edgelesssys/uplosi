@@ -12,7 +12,19 @@ import (
 type Config struct {
 	ImageVersion string      `toml:"imageVersion"`
 	Name         string      `toml:"name"`
+	AWS          AWSConfig   `toml:"aws"`
 	Azure        AzureConfig `toml:"azure"`
+}
+
+type AWSConfig struct {
+	Region             string   `toml:"region"`
+	ReplicationRegions []string `toml:"replicationRegions"`
+	AMINameTemplate    string   `toml:"amiNameTemplate"`
+	AMIDescription     string   `toml:"amiDescription"`
+	Bucket             string   `toml:"bucket"`
+	BlobName           string   `toml:"blobName"`
+	SnapshotName       string   `toml:"snapshotName"`
+	Publish            bool     `toml:"publish"`
 }
 
 type AzureConfig struct {
@@ -31,7 +43,6 @@ type AzureConfig struct {
 }
 
 type Request struct {
-	Image     io.ReadSeekCloser
-	Timestamp string
-	Size      int64
+	Image io.ReadSeekCloser
+	Size  int64
 }
