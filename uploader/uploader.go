@@ -10,24 +10,24 @@ import (
 )
 
 type Config struct {
-	ImageVersion string      `yaml:"imageVersion"`
-	Name         string      `yaml:"name"`
-	Azure        AzureConfig `yaml:"azure"`
+	ImageVersion string      `toml:"imageVersion"`
+	Name         string      `toml:"name"`
+	Azure        AzureConfig `toml:"azure"`
 }
 
 type AzureConfig struct {
-	SubscriptionID         string `yaml:"subscriptionID"`
-	Location               string `yaml:"location"`
-	ResourceGroup          string `yaml:"resourceGroup"`
-	AttestationVariant     string `yaml:"attestationVariant"`
-	SharedImageGalleryName string `yaml:"sharedImageGallery"`
-	SharingProfile         string `yaml:"sharingProfile"`
-	SharingNamePrefix      string `yaml:"sharingNamePrefix"`
-	ImageDefinitionName    string `yaml:"imageDefinition"`
-	Offer                  string `yaml:"offer"`
-	SKU                    string `yaml:"sku"`
-	Publisher              string `yaml:"publisher"`
-	DiskName               string `yaml:"diskName"`
+	SubscriptionID         string `toml:"subscriptionID"`
+	Location               string `toml:"location"`
+	ResourceGroup          string `toml:"resourceGroup"`
+	AttestationVariant     string `toml:"attestationVariant"`
+	SharedImageGalleryName string `toml:"sharedImageGallery"`
+	SharingProfile         string `toml:"sharingProfile"`
+	SharingNamePrefix      string `toml:"sharingNamePrefix"`
+	ImageDefinitionName    string `toml:"imageDefinition"`
+	Offer                  string `toml:"offer"`
+	SKU                    string `toml:"sku"`
+	Publisher              string `toml:"publisher"`
+	DiskName               string `toml:"diskName"`
 }
 
 type Request struct {
