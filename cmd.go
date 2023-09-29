@@ -14,15 +14,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/edgelesssys/uplosi/azure"
 	"github.com/edgelesssys/uplosi/uploader"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
-	"gopkg.in/yaml.v3"
 )
 
 const (
-	configName      = "uplosi.yml"
+	configName      = "uplosi.toml"
 	timestampFormat = "20060102150405"
 )
 
@@ -52,7 +52,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	var config uploader.Config
-	if err := readYAMLFile(configName, &config); err != nil {
+	if err := readTOMLFile(configName, &config); err != nil {
 		return fmt.Errorf("reading config: %w", err)
 	}
 
@@ -100,7 +100,7 @@ func run(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("incrementing semver: %w", err)
 		}
 		config.ImageVersion = newVer
-		if err := writeYAMLFile(configName, config); err != nil {
+		if err := writeTOMLFile(configName, config); err != nil {
 			return fmt.Errorf("writing config: %w", err)
 		}
 	}
@@ -122,25 +122,25 @@ func parseUploadFlags(cmd *cobra.Command) (*uploadFlags, error) {
 	}, nil
 }
 
-func readYAMLFile(path string, data any) error {
+func readTOMLFile(path string, data any) error {
 	configFile, err := os.OpenFile(path, os.O_RDONLY, os.ModeAppend)
 	if err != nil {
 		return fmt.Errorf("opening file: %w", err)
 	}
 	defer configFile.Close()
-	if err := yaml.NewDecoder(configFile).Decode(data); err != nil {
+	if _, err := toml.NewDecoder(configFile).Decode(data); err != nil {
 		return fmt.Errorf("decoding file: %w", err)
 	}
 	return nil
 }
 
-func writeYAMLFile(path string, data any) error {
+func writeTOMLFile(path string, data any) error {
 	configFile, err := os.OpenFile(path, os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return fmt.Errorf("opening file: %w", err)
 	}
 	defer configFile.Close()
-	if err := yaml.NewEncoder(configFile).Encode(data); err != nil {
+	if err := toml.NewEncoder(configFile).Encode(data); err != nil {
 		return fmt.Errorf("encoding file: %w", err)
 	}
 	return nil
