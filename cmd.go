@@ -12,9 +12,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/edgelesssys/uplosi/aws"
 	"github.com/edgelesssys/uplosi/azure"
 	"github.com/edgelesssys/uplosi/uploader"
 	"github.com/spf13/cobra"
@@ -22,8 +22,7 @@ import (
 )
 
 const (
-	configName      = "uplosi.toml"
-	timestampFormat = "20060102150405"
+	configName = "uplosi.toml"
 )
 
 func newCmd() *cobra.Command {
@@ -59,7 +58,13 @@ func run(cmd *cobra.Command, args []string) error {
 	var prepper Prepper
 	var upload Uploader
 
-	switch provider {
+	switch strings.ToLower(provider) {
+	case "aws":
+		prepper = &aws.Prepper{}
+		upload, err = aws.NewUploader(config, logger)
+		if err != nil {
+			return fmt.Errorf("creating aws uploader: %w", err)
+		}
 	case "azure":
 		prepper = &azure.Prepper{}
 		upload, err = azure.NewUploader(config, logger)
@@ -83,16 +88,17 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	req := &uploader.Request{
-		Image:     image,
-		Timestamp: time.Now().UTC().Format(timestampFormat),
-		Size:      imageFi.Size(),
+		Image: image,
+		Size:  imageFi.Size(),
 	}
-	ref, err := upload.Upload(cmd.Context(), req)
+	refs, err := upload.Upload(cmd.Context(), req)
 	if err != nil {
 		return fmt.Errorf("uploading image: %w", err)
 	}
 
-	fmt.Println(ref)
+	for _, ref := range refs {
+		fmt.Println(ref)
+	}
 
 	if flags.incrementVersion {
 		newVer, err := incrementSemver(config.ImageVersion)
@@ -147,7 +153,7 @@ func writeTOMLFile(path string, data any) error {
 }
 
 func supportedCSPs() []string {
-	return []string{"azure"}
+	return []string{"aws", "azure"}
 }
 
 func isCSP(position int) func(*cobra.Command, []string) error {
@@ -166,7 +172,7 @@ type Prepper interface {
 }
 
 type Uploader interface {
-	Upload(ctx context.Context, req *uploader.Request) (ref string, retErr error)
+	Upload(ctx context.Context, req *uploader.Request) (refs []string, retErr error)
 }
 
 func canonicalSemver(version string) error {
@@ -184,7 +190,7 @@ func incrementSemver(version string) (string, error) {
 	canonical := strings.TrimPrefix(semver.Canonical("v"+version), "v")
 	parts := strings.Split(canonical, ".")
 	if len(parts) != 3 {
-		return "", fmt.Errorf("splitting canonical version: %s, %v", version, parts)
+		return "", fmt.Errorf("splitting canonical version: %s, %v", canonical, parts)
 	}
 
 	patch := parts[2]
