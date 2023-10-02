@@ -26,15 +26,25 @@ const (
 	configName = "uplosi.toml"
 )
 
+var (
+	version = "0.0.0-dev"
+	commit  = "HEAD"
+)
+
 func newCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:              "uplosi <provider> <image>",
 		Short:            "uplosi is a tool for uploading images to a cloud provider",
 		PersistentPreRun: preRunRoot,
 		RunE:             run,
+		Version:          version,
 		Args:             cobra.MatchAll(cobra.ExactArgs(2), isCSP(0)),
 	}
 	cmd.SetOut(os.Stdout)
+	cmd.InitDefaultVersionFlag()
+	cmd.SetVersionTemplate(
+		fmt.Sprintf("uplosi - upload OS images\n\nversion   %s\ncommit    %s\n", version, commit),
+	)
 
 	cmd.Flags().BoolP("increment-version", "i", false, "increment version number in config after upload")
 
