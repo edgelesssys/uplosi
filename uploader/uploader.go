@@ -29,18 +29,18 @@ type AWSConfig struct {
 }
 
 type AzureConfig struct {
-	SubscriptionID         string `toml:"subscriptionID"`
-	Location               string `toml:"location"`
-	ResourceGroup          string `toml:"resourceGroup"`
-	AttestationVariant     string `toml:"attestationVariant"`
-	SharedImageGalleryName string `toml:"sharedImageGallery"`
-	SharingProfile         string `toml:"sharingProfile"`
-	SharingNamePrefix      string `toml:"sharingNamePrefix"`
-	ImageDefinitionName    string `toml:"imageDefinition"`
-	Offer                  string `toml:"offer"`
-	SKU                    string `toml:"sku"`
-	Publisher              string `toml:"publisher"`
-	DiskName               string `toml:"diskName"`
+	SubscriptionID              string `toml:"subscriptionID"`
+	Location                    string `toml:"location"`
+	ResourceGroup               string `toml:"resourceGroup"`
+	AttestationVariant          string `toml:"attestationVariant"`
+	SharedImageGalleryName      string `toml:"sharedImageGallery"`
+	SharingProfile              string `toml:"sharingProfile"`
+	SharingNamePrefix           string `toml:"sharingNamePrefix"`
+	ImageDefinitionNameTemplate string `toml:"imageDefinitionNameTemplate"`
+	Offer                       string `toml:"offer"`
+	SKU                         string `toml:"sku"`
+	Publisher                   string `toml:"publisher"`
+	DiskName                    string `toml:"diskName"`
 }
 
 type GCPConfig struct {
