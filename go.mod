@@ -1,6 +1,6 @@
 module github.com/edgelesssys/uplosi
 
-go 1.20
+go 1.21
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.7.2
@@ -10,6 +10,7 @@ require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.122.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.40.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.22.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/mod v0.8.0
@@ -21,7 +22,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.43 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.14.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.17.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.22.0 // indirect
 )
 
 require (
