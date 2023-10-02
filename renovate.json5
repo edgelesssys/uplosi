@@ -1,0 +1,84 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":preserveSemverRanges",
+    "helpers:pinGitHubActionDigests",
+    ":separateMajorReleases",
+    ":semanticCommitsDisabled",
+  ],
+  "commitMessagePrefix": "deps:",
+  "commitMessageAction": "update",
+  "addLabels": [
+    "dependencies"
+  ],
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodUpdateImportPaths"
+  ],
+  "prConcurrentLimit": 4,
+  "packageRules": [
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchDepTypes": [
+        "indirect"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest",
+        "lockFileMaintenance",
+        "rollback",
+        "bump",
+      ],
+      "enabled": true,
+      "prPriority": -30,
+    },
+    {
+      "matchPackagePatterns": [
+        "^github.com/aws/aws-sdk-go-v2"
+      ],
+      "groupName": "AWS SDK",
+      "prPriority": -10,
+    },
+    {
+      "matchPackagePatterns": [
+        "^github.com/Azure/",
+        "^github.com/AzureAD/microsoft-authentication-library-for-go",
+      ],
+      "groupName": "Azure SDK",
+    },
+    {
+      "matchPackagePatterns": [
+        "^cloud.google.com/go"
+      ],
+      "groupName": "Google SDK",
+    },
+    {
+      "matchPackagePatterns": [
+        "^google.golang.org/genproto"
+      ],
+      "prPriority": -10,
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "GitHub action dependencies",
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest",
+        "lockFileMaintenance",
+        "rollback",
+        "bump",
+      ],
+    },
+  ],
+}
