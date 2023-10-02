@@ -125,7 +125,8 @@ func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (refs []st
 		return nil, fmt.Errorf("ensuring image definition exists: %w", err)
 	}
 
-	diskID, err := u.createDisk(ctx, DiskTypeNormal, req.Image, nil, req.Size)
+	vhdReader := newVHDReader(req.Image, uint64(req.Size), [16]byte{}, time.Time{})
+	diskID, err := u.createDisk(ctx, DiskTypeNormal, vhdReader, nil, int64(vhdReader.ContainerSize()))
 	if err != nil {
 		return nil, fmt.Errorf("creating disk: %w", err)
 	}
@@ -154,7 +155,7 @@ func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (refs []st
 }
 
 // createDisk creates and initializes (uploads contents of) an azure disk.
-func (u *Uploader) createDisk(ctx context.Context, diskType DiskType, img io.ReadSeeker, vmgs io.ReadSeeker, size int64) (string, error) {
+func (u *Uploader) createDisk(ctx context.Context, diskType DiskType, img io.Reader, vmgs io.ReadSeeker, size int64) (string, error) {
 	rg := u.config.Azure.ResourceGroup
 	diskName := u.config.Azure.DiskName
 
@@ -565,7 +566,7 @@ func (u *Uploader) getImageReference(ctx context.Context, unsharedID string) (st
 	return *communityVersionResp.Identifier.UniqueID, nil
 }
 
-func uploadBlob(ctx context.Context, sasURL string, disk io.ReadSeeker, size int64, uploader sasBlobUploader) error {
+func uploadBlob(ctx context.Context, sasURL string, disk io.Reader, size int64, uploader sasBlobUploader) error {
 	uploadClient, err := uploader(sasURL)
 	if err != nil {
 		return fmt.Errorf("uploading blob: %w", err)
