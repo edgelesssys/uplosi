@@ -11,7 +11,7 @@ import (
 
 type Prepper struct{}
 
-func (p *Prepper) Prepare(_ context.Context, imagePath string) (string, error) {
+func (p *Prepper) Prepare(_ context.Context, imagePath, _ string) (string, error) {
 	// AWS does not need any preparation.
 	return imagePath, nil
 }
