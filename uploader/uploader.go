@@ -14,6 +14,7 @@ type Config struct {
 	Name         string      `toml:"name"`
 	AWS          AWSConfig   `toml:"aws"`
 	Azure        AzureConfig `toml:"azure"`
+	GCP          GCPConfig   `toml:"gcp"`
 }
 
 type AWSConfig struct {
@@ -40,6 +41,15 @@ type AzureConfig struct {
 	SKU                    string `toml:"sku"`
 	Publisher              string `toml:"publisher"`
 	DiskName               string `toml:"diskName"`
+}
+
+type GCPConfig struct {
+	Project           string `toml:"project"`
+	Location          string `toml:"location"`
+	ImageNameTemplate string `toml:"imageNameTemplate"`
+	ImageFamily       string `toml:"imageFamily"`
+	Bucket            string `toml:"bucket"`
+	BlobName          string `toml:"blobName"`
 }
 
 type Request struct {

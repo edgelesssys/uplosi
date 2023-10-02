@@ -23,6 +23,7 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go"
+	uplositemplate "github.com/edgelesssys/uplosi/template"
 	"github.com/edgelesssys/uplosi/uploader"
 )
 
@@ -46,7 +47,9 @@ func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
 	if len(config.AWS.AMINameTemplate) == 0 {
 		templateString = "{{.Name}}-{{.ImageVersion}}"
 	}
-	amiNameTemplate, err := template.New("ami-name").Parse(templateString)
+	amiNameTemplate, err := template.New("ami-name").
+		Funcs(uplositemplate.DefaultFuncMap()).
+		Parse(templateString)
 	if err != nil {
 		return nil, fmt.Errorf("parsing ami name template: %w", err)
 	}

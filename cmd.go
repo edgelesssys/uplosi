@@ -16,6 +16,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/edgelesssys/uplosi/aws"
 	"github.com/edgelesssys/uplosi/azure"
+	"github.com/edgelesssys/uplosi/gcp"
 	"github.com/edgelesssys/uplosi/uploader"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
@@ -71,9 +72,21 @@ func run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("creating azure uploader: %w", err)
 		}
+	case "gcp":
+		prepper = &gcp.Prepper{}
+		upload, err = gcp.NewUploader(config, logger)
+		if err != nil {
+			return fmt.Errorf("creating gcp uploader: %w", err)
+		}
 	}
 
-	imagePath, err = prepper.Prepare(cmd.Context(), imagePath)
+	tmpDir, err := os.MkdirTemp("", "uplosi-")
+	if err != nil {
+		return fmt.Errorf("creating temp dir: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	imagePath, err = prepper.Prepare(cmd.Context(), imagePath, tmpDir)
 	if err != nil {
 		return fmt.Errorf("preparing image: %w", err)
 	}
@@ -153,7 +166,7 @@ func writeTOMLFile(path string, data any) error {
 }
 
 func supportedCSPs() []string {
-	return []string{"aws", "azure"}
+	return []string{"aws", "azure", "gcp"}
 }
 
 func isCSP(position int) func(*cobra.Command, []string) error {
@@ -168,7 +181,7 @@ func isCSP(position int) func(*cobra.Command, []string) error {
 }
 
 type Prepper interface {
-	Prepare(ctx context.Context, imagePath string) (string, error)
+	Prepare(ctx context.Context, imagePath, tmpDir string) (string, error)
 }
 
 type Uploader interface {
