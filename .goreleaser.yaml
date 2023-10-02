@@ -1,0 +1,56 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+builds:
+  - env:
+      - CGO_ENABLED=0
+    flags: -trimpath
+    ldflags:
+      - -s
+      - -w
+      - -buildid=
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - "386"
+      - arm64
+      - ppc64le
+      - s390x
+      - riscv64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    builds_info:
+      group: root
+      owner: root
+      mode: 0755
+      mtime: 1970-01-01T00:00:00.000000001Z
+    files:
+      - LICENSE
+      - README.md
+      - info:
+          group: root
+          owner: root
+          mode: 0644
+          mtime: 1970-01-01T00:00:00.000000001Z
+
+release:
+  github:
+    owner: edgelesssys
+    name: uplosi
+  draft: true
+  replace_existing_draft: true
+  mode: replace
+
+changelog:
+  use: github
+  sort: asc
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
