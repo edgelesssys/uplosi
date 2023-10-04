@@ -501,7 +501,7 @@ func (u *Uploader) tagImageAndSnapshot(ctx context.Context, amiID, region string
 }
 
 func (u *Uploader) publishImage(ctx context.Context, amiID, region string) error {
-	if !u.config.AWS.Publish {
+	if !u.config.AWS.Publish.UnwrapOr(false) {
 		return nil
 	}
 
