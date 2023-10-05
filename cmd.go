@@ -49,7 +49,7 @@ func newCmd() *cobra.Command {
 		fmt.Sprintf("uplosi - upload OS images\n\nversion   %s\ncommit    %s\n", version, commit),
 	)
 
-	cmd.Flags().BoolP("increment-version", "i", false, "increment version number in config after upload")
+	cmd.Flags().BoolP("increment-version", "i", false, "increment version number after upload")
 	cmd.Flags().StringSlice("enable-variant-glob", []string{"*"}, "list of variant name globs to enable")
 	cmd.Flags().StringSlice("disable-variant-glob", nil, "list of variant name globs to disable")
 
