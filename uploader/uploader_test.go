@@ -33,7 +33,7 @@ func TestConfigRenderTemplate(t *testing.T) {
 		Name:         "name",
 		ImageVersion: "0.0.1",
 		GCP: GCPConfig{
-			ImageName: "prefix-{{.Name}}-{{replaceAll .ImageVersion \".\" \"-\"}}-suffix",
+			ImageName: "prefix-{{.Name}}-{{replaceAll .Version \".\" \"-\"}}-suffix",
 		},
 	}
 	assert.NoError(config.Render(lookup.Lookup))
