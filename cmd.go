@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,8 +19,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/edgelesssys/uplosi/aws"
 	"github.com/edgelesssys/uplosi/azure"
+	"github.com/edgelesssys/uplosi/config"
 	"github.com/edgelesssys/uplosi/gcp"
-	"github.com/edgelesssys/uplosi/uploader"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -65,7 +66,7 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	config, err := parseConfigFiles()
+	conf, err := parseConfigFiles()
 	if err != nil {
 		return fmt.Errorf("parsing config files: %w", err)
 	}
@@ -83,8 +84,8 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	allRefs := []string{}
-	err = config.ForEach(
-		func(name string, cfg uploader.Config) error {
+	err = conf.ForEach(
+		func(name string, cfg config.Config) error {
 			refs, err := uploadVariant(cmd.Context(), imagePath, name, cfg, logger)
 			if err != nil {
 				return err
@@ -126,7 +127,7 @@ func run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func uploadVariant(ctx context.Context, imagePath, variant string, config uploader.Config, logger *log.Logger) ([]string, error) {
+func uploadVariant(ctx context.Context, imagePath, variant string, config config.Config, logger *log.Logger) ([]string, error) {
 	var prepper Prepper
 	var upload Uploader
 	var err error
@@ -178,11 +179,7 @@ func uploadVariant(ctx context.Context, imagePath, variant string, config upload
 		return nil, fmt.Errorf("getting image stats: %w", err)
 	}
 
-	req := &uploader.Request{
-		Image: image,
-		Size:  imageFi.Size(),
-	}
-	refs, err := upload.Upload(ctx, req)
+	refs, err := upload.Upload(ctx, image, imageFi.Size())
 	if err != nil {
 		return nil, fmt.Errorf("uploading image: %w", err)
 	}
@@ -254,24 +251,24 @@ type Prepper interface {
 }
 
 type Uploader interface {
-	Upload(ctx context.Context, req *uploader.Request) (refs []string, retErr error)
+	Upload(ctx context.Context, image io.ReadSeeker, size int64) (refs []string, retErr error)
 }
 
-func parseConfigFiles() (*uploader.ConfigFile, error) {
-	var config uploader.ConfigFile
-	if err := readTOMLFile(configName, &config); err != nil {
+func parseConfigFiles() (*config.ConfigFile, error) {
+	var conf config.ConfigFile
+	if err := readTOMLFile(configName, &conf); err != nil {
 		return nil, fmt.Errorf("reading config: %w", err)
 	}
 
 	dirEntries, err := os.ReadDir(configDir)
 	if os.IsNotExist(err) {
-		return &config, nil
+		return &conf, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("reading config dir: %w", err)
 	}
 	for _, dirEntry := range dirEntries {
-		var cfgOverlay uploader.ConfigFile
+		var cfgOverlay config.ConfigFile
 		if dirEntry.IsDir() {
 			continue
 		}
@@ -281,11 +278,11 @@ func parseConfigFiles() (*uploader.ConfigFile, error) {
 		if err := readTOMLFile(configName, &cfgOverlay); err != nil {
 			return nil, fmt.Errorf("reading config: %w", err)
 		}
-		if err := config.Merge(cfgOverlay); err != nil {
+		if err := conf.Merge(cfgOverlay); err != nil {
 			return nil, fmt.Errorf("merging config: %w", err)
 		}
 	}
-	return &config, nil
+	return &conf, nil
 }
 
 func incrementSemver(version string) (string, error) {
