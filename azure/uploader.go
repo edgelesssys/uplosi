@@ -329,17 +329,20 @@ func (u *Uploader) createManagedImage(ctx context.Context, diskID string) (strin
 
 func (u *Uploader) ensureManagedImageDeleted(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
-	diskName := u.config.Azure.DiskName
+	imgName, err := u.imageDefinitionName()
+	if err != nil {
+		return fmt.Errorf("inferring image definition name: %w", err)
+	}
 
 	getOpts := &armcomputev5.ImagesClientGetOptions{}
-	if _, err := u.managedImages.Get(ctx, rg, diskName, getOpts); err != nil {
-		u.log.Printf("Managed image %s in %s doesn't exist. Nothing to clean up.", diskName, rg)
+	if _, err := u.managedImages.Get(ctx, rg, imgName, getOpts); err != nil {
+		u.log.Printf("Managed image %s in %s doesn't exist. Nothing to clean up.", imgName, rg)
 		return nil
 	}
 
-	u.log.Printf("Deleting managed image %s in %s", diskName, rg)
+	u.log.Printf("Deleting managed image %s in %s", imgName, rg)
 	deleteOpts := &armcomputev5.ImagesClientBeginDeleteOptions{}
-	deletePoller, err := u.managedImages.BeginDelete(ctx, rg, diskName, deleteOpts)
+	deletePoller, err := u.managedImages.BeginDelete(ctx, rg, imgName, deleteOpts)
 	if err != nil {
 		return fmt.Errorf("deleting image: %w", err)
 	}
