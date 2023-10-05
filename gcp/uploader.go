@@ -18,12 +18,12 @@ import (
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"cloud.google.com/go/storage"
-	"github.com/edgelesssys/uplosi/uploader"
+	"github.com/edgelesssys/uplosi/config"
 )
 
 // Uploader can upload and remove os images on GCP.
 type Uploader struct {
-	config uploader.Config
+	config config.Config
 
 	image  func(context.Context) (imagesAPI, error)
 	bucket func(context.Context) (bucketAPI, error)
@@ -31,8 +31,8 @@ type Uploader struct {
 	log *log.Logger
 }
 
-// NewUploader creates a new Uploader.
-func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
+// NewUploader creates a new config.
+func NewUploader(config config.Config, log *log.Logger) (*Uploader, error) {
 	return &Uploader{
 		config: config,
 		image: func(ctx context.Context) (imagesAPI, error) {
@@ -50,7 +50,7 @@ func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
 }
 
 // Upload uploads an OS image to GCP.
-func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (ref []string, retErr error) {
+func (u *Uploader) Upload(ctx context.Context, image io.ReadSeeker, _ int64) (ref []string, retErr error) {
 	// Ensure new image can be uploaded by deleting existing resources with the same name.
 	if err := u.ensureImageDeleted(ctx); err != nil {
 		return nil, fmt.Errorf("pre-cleaning: ensuring no image using the same name exists: %w", err)
@@ -65,7 +65,7 @@ func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (ref []str
 	}
 
 	// Upload tar.gz encoded raw image to GCS.
-	if err := u.uploadBlob(ctx, req.Image); err != nil {
+	if err := u.uploadBlob(ctx, image); err != nil {
 		return nil, fmt.Errorf("uploading image to GCS: %w", err)
 	}
 	defer func(retErr *error) {

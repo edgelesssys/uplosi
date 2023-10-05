@@ -21,7 +21,7 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go"
-	"github.com/edgelesssys/uplosi/uploader"
+	"github.com/edgelesssys/uplosi/config"
 )
 
 const (
@@ -33,19 +33,19 @@ var errAMIDoesNotExist = errors.New("ami does not exist")
 
 // Uploader can upload and remove os images on AWS.
 type Uploader struct {
-	config uploader.Config
+	config config.Config
 
 	log *log.Logger
 }
 
-func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
+func NewUploader(config config.Config, log *log.Logger) (*Uploader, error) {
 	return &Uploader{
 		config: config,
 		log:    log,
 	}, nil
 }
 
-func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (refs []string, retErr error) {
+func (u *Uploader) Upload(ctx context.Context, image io.ReadSeeker, _ int64) (refs []string, retErr error) {
 	allRegions := make([]string, 0, len(u.config.AWS.ReplicationRegions)+1)
 	allRegions = append(allRegions, u.config.AWS.Region)
 	allRegions = append(allRegions, u.config.AWS.ReplicationRegions...)
@@ -77,7 +77,7 @@ func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (refs []st
 	}
 
 	// create primary image
-	if err := u.uploadBlob(ctx, req.Image); err != nil {
+	if err := u.uploadBlob(ctx, image); err != nil {
 		return nil, fmt.Errorf("uploading image to s3: %w", err)
 	}
 	defer func(retErr *error) {

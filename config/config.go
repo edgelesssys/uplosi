@@ -3,13 +3,12 @@ Copyright (c) Edgeless Systems GmbH
 
 SPDX-License-Identifier: Apache-2.0
 */
-package uploader
+package config
 
 import (
 	"errors"
 	"fmt"
 	"html/template"
-	"io"
 	"reflect"
 	"slices"
 	"strings"
@@ -202,11 +201,6 @@ type GCPConfig struct {
 	ImageFamily string `toml:"imageFamily,omitempty" template:"true"`
 	Bucket      string `toml:"bucket,omitempty" template:"true"`
 	BlobName    string `toml:"blobName,omitempty" template:"true"`
-}
-
-type Request struct {
-	Image io.ReadSeekCloser
-	Size  int64
 }
 
 type ConfigFile struct {

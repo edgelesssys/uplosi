@@ -20,7 +20,7 @@ import (
 	armcomputev5 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/pageblob"
-	"github.com/edgelesssys/uplosi/uploader"
+	"github.com/edgelesssys/uplosi/config"
 )
 
 const (
@@ -32,7 +32,7 @@ const (
 
 // Uploader can upload and remove os images on Azure.
 type Uploader struct {
-	config           uploader.Config
+	config           config.Config
 	pollingFrequency time.Duration
 	pollOpts         *runtime.PollUntilDoneOptions
 
@@ -48,8 +48,8 @@ type Uploader struct {
 	log *log.Logger
 }
 
-// NewUploader creates a new Uploader.
-func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
+// NewUploader creates a new config.
+func NewUploader(config config.Config, log *log.Logger) (*Uploader, error) {
 	subscriptionID := config.Azure.SubscriptionID
 
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
@@ -104,7 +104,7 @@ func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
 }
 
 // Upload uploads an OS image to Azure.
-func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (refs []string, retErr error) {
+func (u *Uploader) Upload(ctx context.Context, image io.ReadSeeker, size int64) (refs []string, retErr error) {
 	// Ensure new image can be uploaded by deleting existing resources using the same name.
 	if err := u.ensureImageVersionDeleted(ctx); err != nil {
 		return nil, fmt.Errorf("pre-cleaning: ensuring no image version using the same name exists: %w", err)
@@ -125,7 +125,7 @@ func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (refs []st
 		return nil, fmt.Errorf("ensuring image definition exists: %w", err)
 	}
 
-	vhdReader := newVHDReader(req.Image, uint64(req.Size), [16]byte{}, time.Time{})
+	vhdReader := newVHDReader(image, uint64(size), [16]byte{}, time.Time{})
 	diskID, err := u.createDisk(ctx, DiskTypeNormal, vhdReader, nil, int64(vhdReader.ContainerSize()))
 	if err != nil {
 		return nil, fmt.Errorf("creating disk: %w", err)
