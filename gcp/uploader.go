@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"net/url"
@@ -19,14 +18,12 @@ import (
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"cloud.google.com/go/storage"
-	uplositemplate "github.com/edgelesssys/uplosi/template"
 	"github.com/edgelesssys/uplosi/uploader"
 )
 
 // Uploader can upload and remove os images on GCP.
 type Uploader struct {
-	config            uploader.Config
-	imageNameTemplate *template.Template
+	config uploader.Config
 
 	image  func(context.Context) (imagesAPI, error)
 	bucket func(context.Context) (bucketAPI, error)
@@ -36,20 +33,8 @@ type Uploader struct {
 
 // NewUploader creates a new Uploader.
 func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
-	templateString := config.GCP.ImageNameTemplate
-	if len(config.GCP.ImageNameTemplate) == 0 {
-		templateString = "{{.Name}}-{{replaceAll .ImageVersion \".\" \"-\"}}"
-	}
-	imageNameTemplate, err := template.New("image-name").
-		Funcs(uplositemplate.DefaultFuncMap()).
-		Parse(templateString)
-	if err != nil {
-		return nil, fmt.Errorf("parsing image name template: %w", err)
-	}
-
 	return &Uploader{
-		config:            config,
-		imageNameTemplate: imageNameTemplate,
+		config: config,
 		image: func(ctx context.Context) (imagesAPI, error) {
 			return compute.NewImagesRESTClient(ctx)
 		},
@@ -98,17 +83,14 @@ func (u *Uploader) Upload(ctx context.Context, req *uploader.Request) (ref []str
 }
 
 func (u *Uploader) createImage(ctx context.Context) (string, error) {
-	imageName, err := u.imageName()
-	if err != nil {
-		return "", fmt.Errorf("inferring image name: %w", err)
-	}
+	imageName := u.config.GCP.ImageName
 	imageC, err := u.image(ctx)
 	if err != nil {
 		return "", err
 	}
 
 	u.log.Printf("Creating image %s", imageName)
-	blobURL := blobURL(u.config.GCP.Bucket, u.blobName())
+	blobURL := blobURL(u.config.GCP.Bucket, u.config.GCP.BlobName)
 	req := computepb.InsertImageRequest{
 		ImageResource: &computepb.Image{
 			Name: &imageName,
@@ -165,7 +147,7 @@ func (u *Uploader) createImage(ctx context.Context) (string, error) {
 }
 
 func (u *Uploader) uploadBlob(ctx context.Context, img io.Reader) error {
-	blobName := u.blobName()
+	blobName := u.config.GCP.BlobName
 	bucketC, err := u.bucket(ctx)
 	if err != nil {
 		return err
@@ -185,7 +167,7 @@ func (u *Uploader) ensureImageDeleted(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	imageName, err := u.imageName()
+	imageName := u.config.GCP.ImageName
 	if err != nil {
 		return fmt.Errorf("inferring image name: %w", err)
 	}
@@ -214,7 +196,7 @@ func (u *Uploader) ensureBlobDeleted(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	blobName := u.blobName()
+	blobName := u.config.GCP.BlobName
 
 	bucketExists, err := u.bucketExists(ctx)
 	if err != nil {
@@ -261,7 +243,6 @@ func (u *Uploader) ensureBucket(ctx context.Context) error {
 func (u *Uploader) bucketExists(ctx context.Context) (bool, error) {
 	bucketC, err := u.bucket(ctx)
 	if err != nil {
-		log.Printf("go here. Yolo")
 		return false, err
 	}
 	_, err = bucketC.Attrs(ctx)
@@ -272,31 +253,7 @@ func (u *Uploader) bucketExists(ctx context.Context) (bool, error) {
 		return false, nil
 	}
 
-	log.Printf("go here. Loyo")
 	return false, err
-}
-
-func (u *Uploader) blobName() string {
-	if len(u.config.GCP.BlobName) > 0 {
-		return u.config.GCP.BlobName
-	}
-	return u.config.Name + "-" + u.config.ImageVersion + ".tar.gz"
-}
-
-func (u *Uploader) imageName() (string, error) {
-	type imageNameData struct {
-		Name         string
-		ImageVersion string
-	}
-	data := imageNameData{
-		Name:         u.config.Name,
-		ImageVersion: u.config.ImageVersion,
-	}
-	imageName := new(strings.Builder)
-	if err := u.imageNameTemplate.Execute(imageName, data); err != nil {
-		return "", fmt.Errorf("executing ami name template: %w", err)
-	}
-	return imageName.String(), nil
 }
 
 func blobURL(bucketName, blobName string) string {

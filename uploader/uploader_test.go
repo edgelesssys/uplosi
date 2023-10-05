@@ -6,10 +6,59 @@ SPDX-License-Identifier: Apache-2.0
 package uploader
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestConfigRenderVersionFromFile(t *testing.T) {
+	assert := assert.New(t)
+	lookup := stubFileLookup{
+		"image-version.txt": []byte("0.0.2"),
+	}
+	config := Config{
+		Name:             "test",
+		ImageVersion:     "0.0.1", // this will be overwritten by the file
+		ImageVersionFile: "image-version.txt",
+	}
+	assert.NoError(config.Render(lookup.Lookup))
+	assert.Equal("0.0.2", config.ImageVersion)
+}
+
+func TestConfigRenderTemplate(t *testing.T) {
+	assert := assert.New(t)
+	lookup := stubFileLookup{}
+	config := Config{
+		Name:         "name",
+		ImageVersion: "0.0.1",
+		GCP: GCPConfig{
+			ImageName: "prefix-{{.Name}}-{{replaceAll .ImageVersion \".\" \"-\"}}-suffix",
+		},
+	}
+	assert.NoError(config.Render(lookup.Lookup))
+	assert.Equal("prefix-name-0-0-1-suffix", config.GCP.ImageName)
+}
+
+func TestConfigSetDefaults(t *testing.T) {
+	assert := assert.New(t)
+	config := Config{
+		ImageVersion: "0.0.1", // this has a value and will not be overwritten with the default
+		Name:         "",      // this has no default and will stay empty
+		AWS: AWSConfig{
+			Publish: None[bool](), // this will be set to the default
+		},
+		Azure: AzureConfig{
+			SharingProfile: "", // this will be set to the default
+		},
+	}
+	assert.NoError(config.SetDefaults())
+	assert.Equal("0.0.1", config.ImageVersion)
+	assert.Empty(config.Name)
+	assert.True(config.AWS.Publish.IsSome())
+	assert.False(config.AWS.Publish.Val)
+	assert.Equal("community", config.Azure.SharingProfile)
+}
 
 func TestConfigMerge(t *testing.T) {
 	assert := assert.New(t)
@@ -83,6 +132,16 @@ func TestConfigFileMerge(t *testing.T) {
 	assert.Equal("test", dst.Variants["b"].Name)
 }
 
+type stubFileLookup map[string][]byte
+
+func (s stubFileLookup) Lookup(name string) ([]byte, error) {
+	val, ok := s[name]
+	if !ok {
+		return nil, errors.New("not found")
+	}
+	return val, nil
+}
+
 func fullConfig() Config {
 	return Config{
 		ImageVersion: "0.0.1",
@@ -90,7 +149,7 @@ func fullConfig() Config {
 		AWS: AWSConfig{
 			Region:             "eu-central-1",
 			ReplicationRegions: []string{"eu-west-1", "eu-west-2"},
-			AMINameTemplate:    "ami-name-template",
+			AMIName:            "ami-name-template",
 			AMIDescription:     "ami-description",
 			Bucket:             "bucket",
 			BlobName:           "blob-name",
@@ -98,26 +157,26 @@ func fullConfig() Config {
 			Publish:            Some[bool](true),
 		},
 		Azure: AzureConfig{
-			SubscriptionID:              "subscription-id",
-			Location:                    "location",
-			ResourceGroup:               "resource-group",
-			AttestationVariant:          "attestation-variant",
-			SharedImageGalleryName:      "shared-image-gallery",
-			SharingProfile:              "sharing-profile",
-			SharingNamePrefix:           "sharing-name-prefix",
-			ImageDefinitionNameTemplate: "image-definition-name-template",
-			Offer:                       "offer",
-			SKU:                         "sku",
-			Publisher:                   "publisher",
-			DiskName:                    "disk-name",
+			SubscriptionID:         "subscription-id",
+			Location:               "location",
+			ResourceGroup:          "resource-group",
+			AttestationVariant:     "attestation-variant",
+			SharedImageGalleryName: "shared-image-gallery",
+			SharingProfile:         "sharing-profile",
+			SharingNamePrefix:      "sharing-name-prefix",
+			ImageDefinitionName:    "image-definition-name-template",
+			Offer:                  "offer",
+			SKU:                    "sku",
+			Publisher:              "publisher",
+			DiskName:               "disk-name",
 		},
 		GCP: GCPConfig{
-			Project:           "project",
-			Location:          "location",
-			ImageNameTemplate: "image-name-template",
-			ImageFamily:       "image-family",
-			Bucket:            "bucket",
-			BlobName:          "blob-name",
+			Project:     "project",
+			Location:    "location",
+			ImageName:   "image-name-template",
+			ImageFamily: "image-family",
+			Bucket:      "bucket",
+			BlobName:    "blob-name",
 		},
 	}
 }

@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strings"
-	"text/template"
 	"time"
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -23,7 +21,6 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go"
-	uplositemplate "github.com/edgelesssys/uplosi/template"
 	"github.com/edgelesssys/uplosi/uploader"
 )
 
@@ -36,28 +33,15 @@ var errAMIDoesNotExist = errors.New("ami does not exist")
 
 // Uploader can upload and remove os images on AWS.
 type Uploader struct {
-	config          uploader.Config
-	amiNameTemplate *template.Template
+	config uploader.Config
 
 	log *log.Logger
 }
 
 func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
-	templateString := config.AWS.AMINameTemplate
-	if len(config.AWS.AMINameTemplate) == 0 {
-		templateString = "{{.Name}}-{{.ImageVersion}}"
-	}
-	amiNameTemplate, err := template.New("ami-name").
-		Funcs(uplositemplate.DefaultFuncMap()).
-		Parse(templateString)
-	if err != nil {
-		return nil, fmt.Errorf("parsing ami name template: %w", err)
-	}
-
 	return &Uploader{
-		config:          config,
-		amiNameTemplate: amiNameTemplate,
-		log:             log,
+		config: config,
+		log:    log,
 	}, nil
 }
 
@@ -191,7 +175,7 @@ func (u *Uploader) ensureBucket(ctx context.Context) error {
 }
 
 func (u *Uploader) uploadBlob(ctx context.Context, img io.Reader) error {
-	blobName := u.blobName()
+	blobName := u.config.AWS.BlobName
 	uploadC, err := u.s3uploader(ctx)
 	if err != nil {
 		return err
@@ -213,7 +197,7 @@ func (u *Uploader) ensureBlobDeleted(ctx context.Context) error {
 		return err
 	}
 	bucket := u.config.AWS.Bucket
-	blobName := u.blobName()
+	blobName := u.config.AWS.BlobName
 
 	bucketExists, err := u.bucketExists(ctx)
 	if err != nil {
@@ -245,8 +229,8 @@ func (u *Uploader) ensureBlobDeleted(ctx context.Context) error {
 }
 
 func (u *Uploader) importSnapshot(ctx context.Context) (string, error) {
-	blobName := u.blobName()
-	snapshotName := u.snapshotName()
+	blobName := u.config.AWS.BlobName
+	snapshotName := u.config.AWS.SnapshotName
 	ec2C, err := u.ec2(ctx, u.config.AWS.Region)
 	if err != nil {
 		return "", fmt.Errorf("creating ec2 client: %w", err)
@@ -340,7 +324,7 @@ func (u *Uploader) findSnapshots(ctx context.Context) ([]string, error) {
 		Filters: []ec2types.Filter{
 			{
 				Name:   toPtr("tag:Name"),
-				Values: []string{u.snapshotName()},
+				Values: []string{u.config.AWS.SnapshotName},
 			},
 		},
 	})
@@ -358,10 +342,7 @@ func (u *Uploader) findSnapshots(ctx context.Context) ([]string, error) {
 }
 
 func (u *Uploader) createImageFromSnapshot(ctx context.Context, snapshotID string) (string, error) {
-	imageName, err := u.amiName()
-	if err != nil {
-		return "", fmt.Errorf("inferring image name: %w", err)
-	}
+	imageName := u.config.AWS.AMIName
 	ec2C, err := u.ec2(ctx, u.config.AWS.Region)
 	if err != nil {
 		return "", fmt.Errorf("creating ec2 client: %w", err)
@@ -398,10 +379,7 @@ func (u *Uploader) createImageFromSnapshot(ctx context.Context, snapshotID strin
 }
 
 func (u *Uploader) replicateImage(ctx context.Context, amiID string, targetRegion string) (string, error) {
-	imageName, err := u.amiName()
-	if err != nil {
-		return "", fmt.Errorf("inferring image name: %w", err)
-	}
+	imageName := u.config.AWS.AMIName
 	ec2C, err := u.ec2(ctx, targetRegion)
 	if err != nil {
 		return "", fmt.Errorf("creating ec2 client: %w", err)
@@ -427,7 +405,7 @@ func (u *Uploader) findImage(ctx context.Context, region string) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("creating ec2 client: %w", err)
 	}
-	imageName, err := u.amiName()
+	imageName := u.config.AWS.AMIName
 	if err != nil {
 		return "", fmt.Errorf("inferring image name: %w", err)
 	}
@@ -472,10 +450,7 @@ func (u *Uploader) waitForImage(ctx context.Context, amiID, region string) error
 }
 
 func (u *Uploader) tagImageAndSnapshot(ctx context.Context, amiID, region string) error {
-	imageName, err := u.amiName()
-	if err != nil {
-		return fmt.Errorf("inferring image name: %w", err)
-	}
+	imageName := u.config.AWS.AMIName
 	ec2C, err := u.ec2(ctx, region)
 	if err != nil {
 		return fmt.Errorf("creating ec2 client: %w", err)
@@ -540,36 +515,6 @@ func (u *Uploader) accountID(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("getting caller identity: no account returned")
 	}
 	return *resp.Account, nil
-}
-
-func (u *Uploader) blobName() string {
-	if len(u.config.AWS.BlobName) > 0 {
-		return u.config.AWS.BlobName
-	}
-	return u.config.Name + "-" + u.config.ImageVersion + ".raw"
-}
-
-func (u *Uploader) snapshotName() string {
-	if len(u.config.AWS.SnapshotName) > 0 {
-		return u.config.AWS.SnapshotName
-	}
-	return u.config.Name + "-" + u.config.ImageVersion
-}
-
-func (u *Uploader) amiName() (string, error) {
-	type amiNameData struct {
-		Name         string
-		ImageVersion string
-	}
-	data := amiNameData{
-		Name:         u.config.Name,
-		ImageVersion: u.config.ImageVersion,
-	}
-	amiName := new(strings.Builder)
-	if err := u.amiNameTemplate.Execute(amiName, data); err != nil {
-		return "", fmt.Errorf("executing ami name template: %w", err)
-	}
-	return amiName.String(), nil
 }
 
 func (u *Uploader) ec2(ctx context.Context, region string) (ec2API, error) {

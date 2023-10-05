@@ -13,7 +13,6 @@ import (
 	"io"
 	"log"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
@@ -21,7 +20,6 @@ import (
 	armcomputev5 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/pageblob"
-	uplositemplate "github.com/edgelesssys/uplosi/template"
 	"github.com/edgelesssys/uplosi/uploader"
 )
 
@@ -34,10 +32,9 @@ const (
 
 // Uploader can upload and remove os images on Azure.
 type Uploader struct {
-	config            uploader.Config
-	pollingFrequency  time.Duration
-	pollOpts          *runtime.PollUntilDoneOptions
-	imageNameTemplate *template.Template
+	config           uploader.Config
+	pollingFrequency time.Duration
+	pollOpts         *runtime.PollUntilDoneOptions
 
 	disks             azureDiskAPI
 	managedImages     azureManagedImageAPI
@@ -54,17 +51,6 @@ type Uploader struct {
 // NewUploader creates a new Uploader.
 func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
 	subscriptionID := config.Azure.SubscriptionID
-
-	templateString := config.Azure.ImageDefinitionNameTemplate
-	if len(config.Azure.ImageDefinitionNameTemplate) == 0 {
-		templateString = "{{.Name}}"
-	}
-	imageNameTemplate, err := template.New("image-definition-name").
-		Funcs(uplositemplate.DefaultFuncMap()).
-		Parse(templateString)
-	if err != nil {
-		return nil, fmt.Errorf("parsing image name template: %w", err)
-	}
 
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
@@ -100,12 +86,11 @@ func NewUploader(config uploader.Config, log *log.Logger) (*Uploader, error) {
 	}
 
 	return &Uploader{
-		config:            config,
-		pollingFrequency:  pollingFrequency,
-		pollOpts:          &runtime.PollUntilDoneOptions{Frequency: pollingFrequency},
-		imageNameTemplate: imageNameTemplate,
-		disks:             diskClient,
-		managedImages:     managedImagesClient,
+		config:           config,
+		pollingFrequency: pollingFrequency,
+		pollOpts:         &runtime.PollUntilDoneOptions{Frequency: pollingFrequency},
+		disks:            diskClient,
+		managedImages:    managedImagesClient,
 		blob: func(sasBlobURL string) (azurePageblobAPI, error) {
 			return pageblob.NewClientWithNoCredential(sasBlobURL, nil)
 		},
@@ -289,10 +274,7 @@ func (u *Uploader) ensureDiskDeleted(ctx context.Context) error {
 func (u *Uploader) createManagedImage(ctx context.Context, diskID string) (string, error) {
 	rg := u.config.Azure.ResourceGroup
 	location := u.config.Azure.Location
-	imgName, err := u.imageDefinitionName()
-	if err != nil {
-		return "", fmt.Errorf("inferring image definition name: %w", err)
-	}
+	imgName := u.config.Azure.ImageDefinitionName
 
 	u.log.Printf("Creating managed image %s in %s", imgName, rg)
 	image := armcomputev5.Image{
@@ -329,10 +311,7 @@ func (u *Uploader) createManagedImage(ctx context.Context, diskID string) (strin
 
 func (u *Uploader) ensureManagedImageDeleted(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
-	imgName, err := u.imageDefinitionName()
-	if err != nil {
-		return fmt.Errorf("inferring image definition name: %w", err)
-	}
+	imgName := u.config.Azure.ImageDefinitionName
 
 	getOpts := &armcomputev5.ImagesClientGetOptions{}
 	if _, err := u.managedImages.Get(ctx, rg, imgName, getOpts); err != nil {
@@ -429,12 +408,9 @@ func (u *Uploader) ensureImageDefinition(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
 	sigName := u.config.Azure.SharedImageGalleryName
 	attestVariant := u.config.Azure.AttestationVariant
-	defName, err := u.imageDefinitionName()
-	if err != nil {
-		return fmt.Errorf("inferring image definition name: %w", err)
-	}
+	defName := u.config.Azure.ImageDefinitionName
 
-	_, err = u.image.Get(ctx, rg, sigName, defName, &armcomputev5.GalleryImagesClientGetOptions{})
+	_, err := u.image.Get(ctx, rg, sigName, defName, &armcomputev5.GalleryImagesClientGetOptions{})
 	if err == nil {
 		u.log.Printf("Image definition %s/%s in %s exists", sigName, defName, rg)
 		return nil
@@ -485,10 +461,7 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 	rg := u.config.Azure.ResourceGroup
 	sigName := u.config.Azure.SharedImageGalleryName
 	verName := u.config.ImageVersion
-	defName, err := u.imageDefinitionName()
-	if err != nil {
-		return "", fmt.Errorf("inferring image definition name: %w", err)
-	}
+	defName := u.config.Azure.ImageDefinitionName
 
 	u.log.Printf("Creating image version %s/%s/%s in %s", sigName, defName, verName, rg)
 	imageVersion := armcomputev5.GalleryImageVersion{
@@ -529,10 +502,7 @@ func (u *Uploader) ensureImageVersionDeleted(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
 	sigName := u.config.Azure.SharedImageGalleryName
 	verName := u.config.ImageVersion
-	defName, err := u.imageDefinitionName()
-	if err != nil {
-		return fmt.Errorf("inferring image definition name: %w", err)
-	}
+	defName := u.config.Azure.ImageDefinitionName
 
 	getOpts := &armcomputev5.GalleryImageVersionsClientGetOptions{}
 	if _, err := u.imageVersions.Get(ctx, rg, sigName, defName, verName, getOpts); err != nil {
@@ -561,10 +531,7 @@ func (u *Uploader) getImageReference(ctx context.Context, unsharedID string) (st
 	location := u.config.Azure.Location
 	sigName := u.config.Azure.SharedImageGalleryName
 	verName := u.config.ImageVersion
-	defName, err := u.imageDefinitionName()
-	if err != nil {
-		return "", fmt.Errorf("inferring image definition name: %w", err)
-	}
+	defName := u.config.Azure.ImageDefinitionName
 
 	galleryResp, err := u.galleries.Get(ctx, rg, sigName, &armcomputev5.GalleriesClientGetOptions{})
 	if err != nil {
@@ -597,22 +564,6 @@ func (u *Uploader) getImageReference(ctx context.Context, unsharedID string) (st
 		return "", fmt.Errorf("community image version %s/%s/%s has no id", communityGalleryName, defName, verName)
 	}
 	return *communityVersionResp.Identifier.UniqueID, nil
-}
-
-func (u *Uploader) imageDefinitionName() (string, error) {
-	type imageNameData struct {
-		Name         string
-		ImageVersion string
-	}
-	data := imageNameData{
-		Name:         u.config.Name,
-		ImageVersion: u.config.ImageVersion,
-	}
-	imageName := new(strings.Builder)
-	if err := u.imageNameTemplate.Execute(imageName, data); err != nil {
-		return "", fmt.Errorf("executing image name template: %w", err)
-	}
-	return imageName.String(), nil
 }
 
 func uploadBlob(ctx context.Context, sasURL string, disk io.Reader, size int64, uploader sasBlobUploader) error {
