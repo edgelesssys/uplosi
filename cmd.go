@@ -249,10 +249,6 @@ func writeVersionFile(path string, data []byte) error {
 	return nil
 }
 
-func supportedCSPs() []string {
-	return []string{"aws", "azure", "gcp"}
-}
-
 type Prepper interface {
 	Prepare(ctx context.Context, imagePath, tmpDir string) (string, error)
 }
@@ -290,17 +286,6 @@ func parseConfigFiles() (*uploader.ConfigFile, error) {
 		}
 	}
 	return &config, nil
-}
-
-func canonicalSemver(version string) error {
-	ver := "v" + version
-	if !semver.IsValid(ver) {
-		return fmt.Errorf("invalid semver: %s", version)
-	}
-	if semver.Canonical(ver) != ver {
-		return fmt.Errorf("not canonical semver: %s", version)
-	}
-	return nil
 }
 
 func incrementSemver(version string) (string, error) {

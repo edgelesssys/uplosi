@@ -83,8 +83,7 @@ func (o *Option[T]) UnmarshalTOML(v any) error {
 		return nil
 	}
 
-	var oVal any
-	oVal = &o.Val
+	oVal := any(&o.Val)
 
 	switch oVal.(type) {
 	case *int:

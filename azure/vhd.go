@@ -37,7 +37,9 @@ func newVHDReader(data io.Reader, size uint64, uuid [16]byte, timestamp time.Tim
 		payloadSize: size,
 	}
 	buf := new(bytes.Buffer)
-	binary.Write(buf, binary.BigEndian, footer)
+	if err := binary.Write(buf, binary.BigEndian, footer); err != nil {
+		panic(err)
+	}
 	copy(reader.footer[:], buf.Bytes())
 
 	return reader

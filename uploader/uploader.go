@@ -215,7 +215,9 @@ type ConfigFile struct {
 }
 
 func (c *ConfigFile) Merge(other ConfigFile) error {
-	c.Base.Merge(other.Base)
+	if err := c.Base.Merge(other.Base); err != nil {
+		return err
+	}
 	if c.Variants == nil && len(other.Variants) > 0 {
 		c.Variants = make(map[string]Config)
 	}
