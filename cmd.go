@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -107,17 +108,21 @@ func run(cmd *cobra.Command, args []string) error {
 		fmt.Println(ref)
 	}
 
-	// if flags.incrementVersion {
-	// 	newVer, err := incrementSemver(config.ImageVersion)
-	// 	if err != nil {
-	// 		return fmt.Errorf("incrementing semver: %w", err)
-	// 	}
-	// 	config.ImageVersion = newVer
-	// 	if err := writeTOMLFile(configName, config); err != nil {
-	// 		return fmt.Errorf("writing config: %w", err)
-	// 	}
-	// }
-
+	if !flags.incrementVersion {
+		return nil
+	}
+	if len(versionFiles) == 0 {
+		return errors.New("increment-version flag set but no version files found")
+	}
+	for versionFileName, version := range versionFiles {
+		newVer, err := incrementSemver(strings.TrimSpace(string(version)))
+		if err != nil {
+			return fmt.Errorf("incrementing semver: %w", err)
+		}
+		if err := writeVersionFile(versionFileName, []byte(newVer)); err != nil {
+			return fmt.Errorf("writing version file: %w", err)
+		}
+	}
 	return nil
 }
 
@@ -232,14 +237,14 @@ func readTOMLFile(path string, data any) error {
 	return nil
 }
 
-func writeTOMLFile(path string, data any) error {
-	configFile, err := os.OpenFile(path, os.O_WRONLY, os.ModeAppend)
+func writeVersionFile(path string, data []byte) error {
+	versionFile, err := os.OpenFile(path, os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return fmt.Errorf("opening file: %w", err)
 	}
-	defer configFile.Close()
-	if err := toml.NewEncoder(configFile).Encode(data); err != nil {
-		return fmt.Errorf("encoding file: %w", err)
+	defer versionFile.Close()
+	if _, err := versionFile.Write(data); err != nil {
+		return fmt.Errorf("writing file: %w", err)
 	}
 	return nil
 }

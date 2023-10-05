@@ -9,6 +9,7 @@ import (
 	"errors"
 	"io"
 	"slices"
+	"strings"
 
 	"dario.cat/mergo"
 	"golang.org/x/mod/semver"
@@ -49,7 +50,7 @@ func (c *Config) RenderVersion(fileLookup func(name string) ([]byte, error)) err
 	if err != nil {
 		return err
 	}
-	c.ImageVersion = string(ver)
+	c.ImageVersion = strings.TrimSpace(string(ver))
 	return nil
 }
 
