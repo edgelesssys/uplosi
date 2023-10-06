@@ -19,7 +19,7 @@
               version = version;
               src = ./.;
               # this needs to be updated together with go.mod / go.sum
-              vendorHash = "sha256-zo09xmX/hx+KTpmyzOQZoXznBxydHLAIpaOr9K+Udbc=";
+              vendorHash = "sha256-7iBYy4Idlb7Q0zUHOMSx70r3rXIA3kJZwV+1ZbmKz7c=";
 
               preBuild = ''
                 export CGO_ENABLED=0

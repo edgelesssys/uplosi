@@ -335,7 +335,7 @@ func (u *Uploader) ensureManagedImageDeleted(ctx context.Context) error {
 // ensureSIG creates a SIG if it does not exist yet.
 func (u *Uploader) ensureSIG(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
-	sigName := u.config.Azure.SharedImageGalleryName
+	sigName := u.config.Azure.SharedImageGallery
 	pubNamePrefix := u.config.Azure.SharingNamePrefix
 	sharingProf := sharingProfilePermissionFromString(u.config.Azure.SharingProfile)
 
@@ -406,7 +406,7 @@ func sharingProfilePermissionFromString(s string) *armcomputev5.GallerySharingPe
 // ensureImageDefinition creates an image definition (component of a SIG) if it does not exist yet.
 func (u *Uploader) ensureImageDefinition(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
-	sigName := u.config.Azure.SharedImageGalleryName
+	sigName := u.config.Azure.SharedImageGallery
 	attestVariant := u.config.Azure.AttestationVariant
 	defName := u.config.Azure.ImageDefinitionName
 
@@ -459,7 +459,7 @@ func (u *Uploader) ensureImageDefinition(ctx context.Context) error {
 
 func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (string, error) {
 	rg := u.config.Azure.ResourceGroup
-	sigName := u.config.Azure.SharedImageGalleryName
+	sigName := u.config.Azure.SharedImageGallery
 	verName := u.config.ImageVersion
 	defName := u.config.Azure.ImageDefinitionName
 
@@ -500,7 +500,7 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 
 func (u *Uploader) ensureImageVersionDeleted(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
-	sigName := u.config.Azure.SharedImageGalleryName
+	sigName := u.config.Azure.SharedImageGallery
 	verName := u.config.ImageVersion
 	defName := u.config.Azure.ImageDefinitionName
 
@@ -529,7 +529,7 @@ func (u *Uploader) ensureImageVersionDeleted(ctx context.Context) error {
 func (u *Uploader) getImageReference(ctx context.Context, unsharedID string) (string, error) {
 	rg := u.config.Azure.ResourceGroup
 	location := u.config.Azure.Location
-	sigName := u.config.Azure.SharedImageGalleryName
+	sigName := u.config.Azure.SharedImageGallery
 	verName := u.config.ImageVersion
 	defName := u.config.Azure.ImageDefinitionName
 
