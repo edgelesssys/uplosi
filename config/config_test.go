@@ -17,11 +17,12 @@ func TestConfigRenderVersionFromFile(t *testing.T) {
 	lookup := stubFileLookup{
 		"image-version.txt": []byte("0.0.2"),
 	}
-	config := Config{
+	config := fullConfig()
+	assert.NoError(config.Merge(Config{
 		Name:             "test",
 		ImageVersion:     "0.0.1", // this will be overwritten by the file
 		ImageVersionFile: "image-version.txt",
-	}
+	}))
 	assert.NoError(config.Render(lookup.Lookup))
 	assert.Equal("0.0.2", config.ImageVersion)
 }
@@ -29,13 +30,14 @@ func TestConfigRenderVersionFromFile(t *testing.T) {
 func TestConfigRenderTemplate(t *testing.T) {
 	assert := assert.New(t)
 	lookup := stubFileLookup{}
-	config := Config{
+	config := fullConfig()
+	assert.NoError(config.Merge(Config{
 		Name:         "name",
 		ImageVersion: "0.0.1",
 		GCP: GCPConfig{
 			ImageName: "prefix-{{.Name}}-{{replaceAll .Version \".\" \"-\"}}-suffix",
 		},
-	}
+	}))
 	assert.NoError(config.Render(lookup.Lookup))
 	assert.Equal("prefix-name-0-0-1-suffix", config.GCP.ImageName)
 }
@@ -144,6 +146,7 @@ func (s stubFileLookup) Lookup(name string) ([]byte, error) {
 
 func fullConfig() Config {
 	return Config{
+		Provider:     "aws",
 		ImageVersion: "0.0.1",
 		Name:         "test",
 		AWS: AWSConfig{
@@ -157,18 +160,18 @@ func fullConfig() Config {
 			Publish:            Some[bool](true),
 		},
 		Azure: AzureConfig{
-			SubscriptionID:         "subscription-id",
-			Location:               "location",
-			ResourceGroup:          "resource-group",
-			AttestationVariant:     "attestation-variant",
-			SharedImageGalleryName: "shared-image-gallery",
-			SharingProfile:         "sharing-profile",
-			SharingNamePrefix:      "sharing-name-prefix",
-			ImageDefinitionName:    "image-definition-name-template",
-			Offer:                  "offer",
-			SKU:                    "sku",
-			Publisher:              "publisher",
-			DiskName:               "disk-name",
+			SubscriptionID:      "subscription-id",
+			Location:            "location",
+			ResourceGroup:       "resource-group",
+			AttestationVariant:  "attestation-variant",
+			SharedImageGallery:  "shared-image-gallery",
+			SharingProfile:      "sharing-profile",
+			SharingNamePrefix:   "sharing-name-prefix",
+			ImageDefinitionName: "image-definition-name-template",
+			Offer:               "offer",
+			SKU:                 "sku",
+			Publisher:           "publisher",
+			DiskName:            "disk-name",
 		},
 		GCP: GCPConfig{
 			Project:     "project",

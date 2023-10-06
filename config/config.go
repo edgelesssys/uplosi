@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package config
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"html/template"
@@ -16,7 +17,6 @@ import (
 	uplositemplate "github.com/edgelesssys/uplosi/template"
 
 	"dario.cat/mergo"
-	"golang.org/x/mod/semver"
 )
 
 var defaultConfig = Config{
@@ -63,19 +63,6 @@ func (c *Config) SetDefaults() error {
 	return mergo.Merge(c, defaultConfig, mergo.WithTransformers(&OptionTransformer{}))
 }
 
-func (c *Config) Validate() error {
-	if len(c.Provider) == 0 {
-		return errors.New("provider must be set")
-	}
-	if !semver.IsValid("v" + c.ImageVersion) {
-		return errors.New("imageVersion must be of the form MAJOR.MINOR.PATCH")
-	}
-	if len(c.Name) == 0 {
-		return errors.New("name must be set")
-	}
-	return nil
-}
-
 // Render renders the config by evaluating the version file and all template strings.
 func (c *Config) Render(fileLookup func(name string) ([]byte, error)) error {
 	if err := c.renderVersion(fileLookup); err != nil {
@@ -92,6 +79,12 @@ func (c *Config) Render(fileLookup func(name string) ([]byte, error)) error {
 		return err
 	}
 	if err := c.renderTemplates(&c.GCP); err != nil {
+		return err
+	}
+
+	v := Validator{}
+
+	if err := v.Validate(context.TODO(), *c); err != nil {
 		return err
 	}
 
@@ -180,18 +173,18 @@ type AWSConfig struct {
 }
 
 type AzureConfig struct {
-	SubscriptionID         string `toml:"subscriptionID,omitempty"`
-	Location               string `toml:"location,omitempty"`
-	ResourceGroup          string `toml:"resourceGroup,omitempty" template:"true"`
-	AttestationVariant     string `toml:"attestationVariant,omitempty" template:"true"`
-	SharedImageGalleryName string `toml:"sharedImageGallery,omitempty" template:"true"`
-	SharingProfile         string `toml:"sharingProfile,omitempty" template:"true"`
-	SharingNamePrefix      string `toml:"sharingNamePrefix,omitempty" template:"true"`
-	ImageDefinitionName    string `toml:"imageDefinitionName,omitempty" template:"true"`
-	Offer                  string `toml:"offer,omitempty" template:"true"`
-	SKU                    string `toml:"sku,omitempty" template:"true"`
-	Publisher              string `toml:"publisher,omitempty" template:"true"`
-	DiskName               string `toml:"diskName,omitempty" template:"true"`
+	SubscriptionID      string `toml:"subscriptionID,omitempty"`
+	Location            string `toml:"location,omitempty"`
+	ResourceGroup       string `toml:"resourceGroup,omitempty" template:"true"`
+	AttestationVariant  string `toml:"attestationVariant,omitempty" template:"true"`
+	SharedImageGallery  string `toml:"sharedImageGallery,omitempty" template:"true"`
+	SharingProfile      string `toml:"sharingProfile,omitempty" template:"true"`
+	SharingNamePrefix   string `toml:"sharingNamePrefix,omitempty" template:"true"`
+	ImageDefinitionName string `toml:"imageDefinitionName,omitempty" template:"true"`
+	Offer               string `toml:"offer,omitempty" template:"true"`
+	SKU                 string `toml:"sku,omitempty" template:"true"`
+	Publisher           string `toml:"publisher,omitempty" template:"true"`
+	DiskName            string `toml:"diskName,omitempty" template:"true"`
 }
 
 type GCPConfig struct {
@@ -254,7 +247,44 @@ func (c *ConfigFile) RenderedVariant(fileLookup fileLookupFn, name string) (Conf
 	return out, nil
 }
 
+func (c *ConfigFile) validateAll(fileLookup fileLookupFn, filters ...variantFilter) error {
+	var errs error
+	if len(c.Variants) == 0 {
+		_, err := c.RenderedVariant(fileLookup, "")
+		if err != nil {
+			return fmt.Errorf("validating config: %w", err)
+		}
+	}
+
+	variantNames := make([]string, 0, len(c.Variants))
+	for name := range c.Variants {
+		var filtered bool
+		for _, filter := range filters {
+			if !filter(name) {
+				filtered = true
+				break
+			}
+		}
+		if filtered {
+			continue
+		}
+		variantNames = append(variantNames, name)
+	}
+	slices.Sort(variantNames)
+	for _, name := range variantNames {
+		_, err := c.RenderedVariant(fileLookup, name)
+		if err != nil {
+			errs = errors.Join(errs, fmt.Errorf("config for variant %s: %w", name, err))
+		}
+	}
+	return errs
+}
+
 func (c *ConfigFile) ForEach(fn func(name string, cfg Config) error, fileLookup fileLookupFn, filters ...variantFilter) error {
+	if err := c.validateAll(fileLookup, filters...); err != nil {
+		return err
+	}
+
 	if len(c.Variants) == 0 {
 		cfg, err := c.RenderedVariant(fileLookup, "")
 		if err != nil {

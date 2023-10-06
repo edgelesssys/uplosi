@@ -25,7 +25,6 @@ func (v *Validator) Validate(ctx context.Context, config Config) error {
 	if err != nil {
 		return fmt.Errorf("evaluating policy: %w", err)
 	}
-	fmt.Println(res)
 
 	var resErr error
 	for _, result := range res {
