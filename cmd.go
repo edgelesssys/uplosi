@@ -276,7 +276,7 @@ func parseConfigFiles() (*config.ConfigFile, error) {
 		if filepath.Ext(dirEntry.Name()) != ".conf" {
 			continue
 		}
-		if err := readTOMLFile(configName, &cfgOverlay); err != nil {
+		if err := readTOMLFile(filepath.Join(configDir, dirEntry.Name()), &cfgOverlay); err != nil {
 			return nil, fmt.Errorf("reading config: %w", err)
 		}
 		if err := conf.Merge(cfgOverlay); err != nil {
