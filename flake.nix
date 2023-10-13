@@ -12,14 +12,14 @@
       (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          version = "0.1.1";
+          version = "0.1.2";
           uplosi = pkgs.buildGo121Module
             {
               pname = "uplosi";
               version = version;
               src = ./.;
               # this needs to be updated together with go.mod / go.sum
-              vendorHash = "sha256-3WLDmw2rhmjrKJ8QXtARS9p8qFx17iwUnljwoUep2uc=";
+              vendorHash = "sha256-RsjUPLe8omoN+XGyNhHDxzNfZR7VVTkh/f/On1oCRqM=";
 
               preBuild = ''
                 export CGO_ENABLED=0
