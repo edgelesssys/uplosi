@@ -177,6 +177,13 @@ The description of the AMI.
 
 The bucket to upload the image to during the upload process.
 
+### `base.aws.bucketRegionConstraint` / `variant.<name>.aws.bucketRegionConstraint`
+
+- Default: none (defaults to `us-east-1`)
+- Required: no
+- Template: no
+
+The region where the buckets exist or should be created.
 
 ### `base.aws.blobName` / `variant.<name>.aws.blobName`
 

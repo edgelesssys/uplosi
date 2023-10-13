@@ -163,12 +163,17 @@ func (u *Uploader) ensureBucket(ctx context.Context) error {
 		return nil
 	}
 	u.log.Printf("Bucket %s doesn't exist. Creating.", bucket)
-	_, err = s3C.CreateBucket(ctx, &s3.CreateBucketInput{
-		Bucket: &bucket,
-		CreateBucketConfiguration: &s3types.CreateBucketConfiguration{
-			LocationConstraint: s3types.BucketLocationConstraint(u.config.AWS.Region),
-		},
-	})
+	var createBucketConfig *s3types.CreateBucketConfiguration
+	if u.config.AWS.BucketLocationConstraint != "" {
+		createBucketConfig = &s3types.CreateBucketConfiguration{
+			LocationConstraint: s3types.BucketLocationConstraint(u.config.AWS.BucketLocationConstraint),
+		}
+	}
+	req := &s3.CreateBucketInput{
+		Bucket:                    &bucket,
+		CreateBucketConfiguration: createBucketConfig,
+	}
+	_, err = s3C.CreateBucket(ctx, req)
 	if err != nil {
 		return fmt.Errorf("creating bucket %s: %w", bucket, err)
 	}
@@ -253,6 +258,7 @@ func (u *Uploader) importSnapshot(ctx context.Context) (string, error) {
 		},
 	})
 	if err != nil {
+		log.Println(bucketPermissionHelpText)
 		return "", fmt.Errorf("importing snapshot: %w", err)
 	}
 	if importResp.ImportTaskId == nil {
@@ -550,6 +556,8 @@ func (u *Uploader) sts(ctx context.Context) (stsAPI, error) {
 	return sts.NewFromConfig(cfg), nil
 }
 
+const bucketPermissionHelpText = "Importing snapshot failed with \"deleted\" status. This may indicate a missing service role for the AWS service \"vmie.amazonaws.com\" to access the snapshot. See https://docs.aws.amazon.com/vm-import/latest/userguide/required-permissions.html#vmimport-role for details."
+
 func waitForSnapshotImport(ctx context.Context, ec2C ec2API, importTaskID string) (string, error) {
 	start := time.Now()
 	for {
@@ -586,7 +594,7 @@ func waitForSnapshotImport(ctx context.Context, ec2C ec2API, importTaskID string
 		case string(ec2types.SnapshotStateError):
 			return "", fmt.Errorf("importing snapshot: task failed with message %q", statusMessage)
 		case string("deleted"):
-			log.Printf("Importing snapshot failed with \"deleted\" status. This may indicate a missing service role for the AWS service \"vmie.amazonaws.com\" to access the snapshot. See https://docs.aws.amazon.com/vm-import/latest/userguide/required-permissions.html#vmimport-role for details.")
+			log.Println(bucketPermissionHelpText)
 			return "", fmt.Errorf("importing snapshot: import state deleted with message %q", statusMessage)
 		default:
 			return "", fmt.Errorf("importing snapshot: status %s with message %q",
