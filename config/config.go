@@ -163,14 +163,15 @@ type fieldTemplateData struct {
 }
 
 type AWSConfig struct {
-	Region             string       `toml:"region,omitempty"`
-	ReplicationRegions []string     `toml:"replicationRegions,omitempty"`
-	AMIName            string       `toml:"amiName,omitempty" template:"true"`
-	AMIDescription     string       `toml:"amiDescription,omitempty" template:"true"`
-	Bucket             string       `toml:"bucket,omitempty" template:"true"`
-	BlobName           string       `toml:"blobName,omitempty" template:"true"`
-	SnapshotName       string       `toml:"snapshotName,omitempty" template:"true"`
-	Publish            Option[bool] `toml:"publish,omitempty"`
+	Region                   string       `toml:"region,omitempty"`
+	ReplicationRegions       []string     `toml:"replicationRegions,omitempty"`
+	AMIName                  string       `toml:"amiName,omitempty" template:"true"`
+	AMIDescription           string       `toml:"amiDescription,omitempty" template:"true"`
+	Bucket                   string       `toml:"bucket,omitempty" template:"true"`
+	BucketLocationConstraint string       `toml:"bucketLocationConstraint,omitempty" template:"false"`
+	BlobName                 string       `toml:"blobName,omitempty" template:"true"`
+	SnapshotName             string       `toml:"snapshotName,omitempty" template:"true"`
+	Publish                  Option[bool] `toml:"publish,omitempty"`
 }
 
 type AzureConfig struct {
