@@ -22,7 +22,7 @@ func main() {
 }
 
 func execute() error {
-	cmd := newCmd()
+	cmd := newRootCmd()
 	ctx, cancel := signalContext(context.Background(), os.Interrupt)
 	defer cancel()
 	return cmd.ExecuteContext(ctx)
