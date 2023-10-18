@@ -31,26 +31,28 @@ const (
 	configDir  = "uplosi.conf.d"
 )
 
-var (
-	version = "0.0.0-dev"
-	commit  = "HEAD"
-)
+var version = "0.0.0-dev"
 
-func newCmd() *cobra.Command {
+func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:              "uplosi <image>",
 		Short:            "uplosi is a tool for uploading images to a cloud provider",
 		PersistentPreRun: preRunRoot,
-		RunE:             run,
 		Version:          version,
-		Args:             cobra.ExactArgs(1),
 	}
 	cmd.SetOut(os.Stdout)
 	cmd.InitDefaultVersionFlag()
-	cmd.SetVersionTemplate(
-		fmt.Sprintf("uplosi - upload OS images\n\nversion   %s\ncommit    %s\n", version, commit),
-	)
+	cmd.AddCommand(newUploadCmd())
 
+	return cmd
+}
+
+func newUploadCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "upload <image>",
+		Short: "Upload an image to a cloud provider",
+		Args:  cobra.ExactArgs(1),
+		RunE:  runUpload,
+	}
 	cmd.Flags().BoolP("increment-version", "i", false, "increment version number after upload")
 	cmd.Flags().StringSlice("enable-variant-glob", []string{"*"}, "list of variant name globs to enable")
 	cmd.Flags().StringSlice("disable-variant-glob", nil, "list of variant name globs to disable")
@@ -58,7 +60,7 @@ func newCmd() *cobra.Command {
 	return cmd
 }
 
-func run(cmd *cobra.Command, args []string) error {
+func runUpload(cmd *cobra.Command, args []string) error {
 	logger := log.New(cmd.OutOrStderr(), "", log.LstdFlags)
 	imagePath := args[0]
 

@@ -28,7 +28,16 @@
               ldflags = [ "-s" "-w" "-buildid=" ];
               flags = [ "-trimpath" ];
 
-              meta = with nixpkgs.lib; {
+              nativeBuildInputs = [ pkgs.installShellFiles ];
+
+              postInstall = ''
+                installShellCompletion --cmd uplosi \
+                  --bash <($out/bin/uplosi completion bash) \
+                  --fish <($out/bin/uplosi completion fish) \
+                  --zsh <($out/bin/uplosi completion zsh)
+              '';
+
+              meta = with pkgs.lib; {
                 description = "Upload OS images to cloud provider";
                 homepage = "https://github.com/edgelesssys/uplosi";
                 maintainers = with maintainers; [
