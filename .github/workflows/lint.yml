@@ -81,3 +81,45 @@ jobs:
         run: |
           go install github.com/rhysd/actionlint/cmd/actionlint@latest
           actionlint
+
+  vendorhash:
+      runs-on: ubuntu-latest
+      permissions:
+        id-token: write
+        contents: read
+      steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          token: ${{ !github.event.pull_request.head.repo.fork && secrets.UPLOSI_CI_COMMIT_PUSH_PR || '' }}
+      - uses: cachix/install-nix-action@6a9a9e84a173d90b3ffb42c5ddaf9ea033fad011 # v23
+      - name: Update uplosi vendor hash
+        run: nix run .#nixutils.update-vendor-hash -- uplosi
+      - name: Check diff
+        id: check-diff
+        run: |
+          diff=$(git diff)
+          if [[ -z "$diff" ]]; then
+            echo "Everything is tidy and generated."
+            exit 0
+          fi
+
+          cat << EOF >> "${GITHUB_STEP_SUMMARY}"
+          \`\`\`diff
+          ${diff}
+          \`\`\`
+          EOF
+
+          echo "::error::vendorHash out of date"
+          exit 1
+      - name: Push changes
+        if: |
+          failure() &&
+          (steps.check-diff.conclusion == 'failure') &&
+          startsWith(github.head_ref, 'renovate/') &&
+          (!github.event.pull_request.head.repo.fork)
+        run: |
+          git config --global user.name "edgelessci"
+          git config --global user.email "edgelessci@users.noreply.github.com"
+          git commit -am "flake: update uplosi vendorHash"
+          git push
