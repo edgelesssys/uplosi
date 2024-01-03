@@ -2,11 +2,19 @@
   description = "Upload OS images to cloud provider";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs = {
+      url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    };
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+    };
+    nixutils = {
+      url = "github:katexochen/nixutils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, nixutils }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -45,6 +53,10 @@
           packages = {
             default = uplosi;
             uplosi = uplosi;
+          };
+
+          legacyPackages = {
+            nixutils = nixutils.packages.${system};
           };
 
           formatter = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
