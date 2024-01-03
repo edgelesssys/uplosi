@@ -61,7 +61,7 @@ func newUploadCmd() *cobra.Command {
 }
 
 func runUpload(cmd *cobra.Command, args []string) error {
-	logger := log.New(cmd.OutOrStderr(), "", log.LstdFlags)
+	logger := log.New(cmd.ErrOrStderr(), "", log.LstdFlags)
 	imagePath := args[0]
 
 	flags, err := parseUploadFlags(cmd)
