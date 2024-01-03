@@ -124,7 +124,7 @@ func (u *Uploader) Upload(ctx context.Context, image io.ReadSeeker, _ int64) (re
 		if err := u.publishImage(ctx, amiIDs[region], region); err != nil {
 			return nil, fmt.Errorf("publishing image in region %s: %w", region, err)
 		}
-		amiARNs = append(amiARNs, getAMIARN(accountID, region, amiIDs[region]))
+		amiARNs = append(amiARNs, getAMIARN(region, accountID, amiIDs[region]))
 	}
 	return amiARNs, nil
 }
