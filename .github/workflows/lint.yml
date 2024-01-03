@@ -91,6 +91,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
+          ref: ${{ !github.event.pull_request.head.repo.fork && github.head_ref || '' }}
           token: ${{ !github.event.pull_request.head.repo.fork && secrets.UPLOSI_CI_COMMIT_PUSH_PR || '' }}
       - uses: cachix/install-nix-action@6a9a9e84a173d90b3ffb42c5ddaf9ea033fad011 # v23
       - name: Update uplosi vendor hash
