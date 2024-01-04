@@ -44,6 +44,9 @@
       "matchManagers": [
         "gomod"
       ],
+      "matchDepTypes": [
+        "require"
+      ],
       "matchUpdateTypes": [
         "minor",
         "patch",
