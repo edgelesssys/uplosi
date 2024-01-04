@@ -17,6 +17,15 @@
     "gomodUpdateImportPaths"
   ],
   "prConcurrentLimit": 1,
+  "nix": {
+    "enabled": true,
+  },
+  "lockFileMaintenance": {
+      "enabled": true,
+      "commitMessageAction": "flake.lock: Update",
+      "commitMessagePrefix": null,
+      "schedule": ["before 4am"],
+  },
   "packageRules": [
     {
       "matchManagers": ["gomod"],
