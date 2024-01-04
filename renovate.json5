@@ -23,9 +23,6 @@
       "matchManagers": [
         "gomod"
       ],
-      "matchDepTypes": [
-        "direct"
-      ],
       "matchUpdateTypes": [
         "minor",
         "patch",
