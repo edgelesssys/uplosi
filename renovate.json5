@@ -19,22 +19,6 @@
   "prConcurrentLimit": 1,
   "packageRules": [
     {
-      "groupName": "Go dependencies",
-      "matchManagers": [
-        "gomod"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "pin",
-        "pinDigest",
-        "digest",
-        "lockFileMaintenance",
-        "rollback",
-        "bump",
-      ],
-    },
-    {
       "groupName": "Go indirect dependencies",
       "matchManagers": [
         "gomod"
@@ -54,6 +38,22 @@
       ],
       "enabled": true,
       "prPriority": -30,
+    },
+    {
+      "groupName": "Go dependencies",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest",
+        "lockFileMaintenance",
+        "rollback",
+        "bump",
+      ],
     },
     {
       "matchManagers": [
