@@ -16,9 +16,29 @@
     "gomodTidy",
     "gomodUpdateImportPaths"
   ],
-  "prConcurrentLimit": 4,
+  "prConcurrentLimit": 1,
   "packageRules": [
     {
+      "groupName": "Go dependencies",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchDepTypes": [
+        "direct"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest",
+        "lockFileMaintenance",
+        "rollback",
+        "bump",
+      ],
+    },
+    {
+      "groupName": "Go indirect dependencies",
       "matchManagers": [
         "gomod"
       ],
@@ -37,32 +57,6 @@
       ],
       "enabled": true,
       "prPriority": -30,
-    },
-    {
-      "matchPackagePatterns": [
-        "^github.com/aws/aws-sdk-go-v2"
-      ],
-      "groupName": "AWS SDK",
-      "prPriority": -10,
-    },
-    {
-      "matchPackagePatterns": [
-        "^github.com/Azure/",
-        "^github.com/AzureAD/microsoft-authentication-library-for-go",
-      ],
-      "groupName": "Azure SDK",
-    },
-    {
-      "matchPackagePatterns": [
-        "^cloud.google.com/go"
-      ],
-      "groupName": "Google SDK",
-    },
-    {
-      "matchPackagePatterns": [
-        "^google.golang.org/genproto"
-      ],
-      "prPriority": -10,
     },
     {
       "matchManagers": [
