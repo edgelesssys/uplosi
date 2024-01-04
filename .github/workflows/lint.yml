@@ -95,7 +95,7 @@ jobs:
           token: ${{ !github.event.pull_request.head.repo.fork && secrets.UPLOSI_CI_COMMIT_PUSH_PR || '' }}
       - uses: cachix/install-nix-action@7ac1ec25491415c381d9b62f0657c7a028df52a7 # v24
       - name: Update uplosi vendor hash
-        run: nix run .#nixutils.update-vendor-hash -- uplosi
+        run: nix run .#nixpkgs.nix-update -- --flake --version=skip uplosi
       - name: Check diff
         id: check-diff
         run: |

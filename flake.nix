@@ -8,13 +8,9 @@
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
-    nixutils = {
-      url = "github:katexochen/nixutils";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, nixutils }:
+  outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -56,7 +52,7 @@
           };
 
           legacyPackages = {
-            nixutils = nixutils.packages.${system};
+            nixpkgs = nixpkgs.legacyPackages.${system};
           };
 
           formatter = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
