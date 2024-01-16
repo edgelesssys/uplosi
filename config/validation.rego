@@ -164,9 +164,9 @@ deny[msg] {
 deny[msg] {
     input.Provider == "azure"
     input.Azure.AttestationVariant != ""
-    not input.Azure.AttestationVariant in ["azure-sev-snp", "azure-trustedlaunch"]
+    not input.Azure.AttestationVariant in ["azure-tdx", "azure-sev-snp", "azure-trustedlaunch"]
 
-    msg = sprintf("attestation variant %q must be one of %s for provider azure", [input.Azure.AttestationVariant, ["azure-sev-snp", "azure-trustedlaunch"]])
+    msg = sprintf("attestation variant %q must be one of %s for provider azure", [input.Azure.AttestationVariant, ["azure-tdx", "azure-sev-snp", "azure-trustedlaunch"]])
 }
 
 deny[msg] {

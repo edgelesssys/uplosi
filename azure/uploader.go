@@ -423,7 +423,7 @@ func (u *Uploader) ensureImageDefinition(ctx context.Context) error {
 	// VMGS provided: ConfidentialVM
 	// No VMGS provided: ConfidentialVMSupported
 	switch strings.ToLower(attestVariant) {
-	case "azure-sev-snp":
+	case "azure-sev-snp", "azure-tdx":
 		securityType = string("ConfidentialVMSupported")
 	case "azure-trustedlaunch":
 		securityType = string(armcomputev5.SecurityTypesTrustedLaunch)
