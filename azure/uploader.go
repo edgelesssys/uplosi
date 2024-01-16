@@ -275,7 +275,7 @@ func (u *Uploader) ensureDiskDeleted(ctx context.Context) error {
 func (u *Uploader) createManagedImage(ctx context.Context, diskID string) (string, error) {
 	rg := u.config.Azure.ResourceGroup
 	location := u.config.Azure.Location
-	imgName := u.config.Azure.ImageDefinitionName
+	imgName := u.config.Azure.DiskName
 
 	u.log.Printf("Creating managed image %s in %s", imgName, rg)
 	image := armcomputev5.Image{
@@ -312,7 +312,7 @@ func (u *Uploader) createManagedImage(ctx context.Context, diskID string) (strin
 
 func (u *Uploader) ensureManagedImageDeleted(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
-	imgName := u.config.Azure.ImageDefinitionName
+	imgName := u.config.Azure.DiskName
 
 	getOpts := &armcomputev5.ImagesClientGetOptions{}
 	if _, err := u.managedImages.Get(ctx, rg, imgName, getOpts); err != nil {
