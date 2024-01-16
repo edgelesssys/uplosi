@@ -239,7 +239,7 @@ Will be created if it does not exist. Example: `"my-rg"`.
 - Required: no
 - Template: yes
 
-The attestation variant to use. One of `azure-sev-snp`, `azure-trustedlaunch`.
+The attestation variant to use. One of `azure-tdx`, `azure-sev-snp`, `azure-trustedlaunch`.
 Used to determine the security type of the image.
 
 ### `base.azure.sharedImageGallery` / `variant.<name>.azure.sharedImageGallery`
