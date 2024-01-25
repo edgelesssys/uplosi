@@ -611,6 +611,10 @@ func toPtr[T any](t T) *T {
 
 var targetRegions = []*armcomputev5.TargetRegion{
 	{
+		Name:                 toPtr("germanywestcentral"),
+		RegionalReplicaCount: toPtr[int32](1),
+	},
+	{
 		Name:                 toPtr("northeurope"),
 		RegionalReplicaCount: toPtr[int32](1),
 	},
