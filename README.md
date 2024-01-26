@@ -224,6 +224,13 @@ The primary Azure region to upload the image to. Example: `northeurope`.
 This region is used for the resource group, disk and gallery.
 Subsequent images are replicated to all other regions specified in `replicationRegions`.
 
+### `base.azure.replicationRegions` / `variant.<name>.azure.replicationRegions`
+
+- Default: `[]`
+- Required: no
+
+Additional Azure regions that the image will be replicated in. Example: `["northeurope", "eastus2"]`.
+
 ### `base.azure.resourceGroup` / `variant.<name>.azure.resourceGroup`
 
 - Default: none

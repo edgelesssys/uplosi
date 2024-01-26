@@ -479,7 +479,7 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 			PublishingProfile: &armcomputev5.GalleryImageVersionPublishingProfile{
 				ReplicaCount:    toPtr[int32](1),
 				ReplicationMode: toPtr(armcomputev5.ReplicationModeFull),
-				TargetRegions:   targetRegions,
+				TargetRegions:   replication(u.config.Azure.Location, u.config.Azure.ReplicationRegions, 1),
 			},
 		},
 	}
@@ -609,29 +609,22 @@ func toPtr[T any](t T) *T {
 	return &t
 }
 
-var targetRegions = []*armcomputev5.TargetRegion{
-	{
-		Name:                 toPtr("germanywestcentral"),
-		RegionalReplicaCount: toPtr[int32](1),
-	},
-	{
-		Name:                 toPtr("northeurope"),
-		RegionalReplicaCount: toPtr[int32](1),
-	},
-	{
-		Name:                 toPtr("eastus"),
-		RegionalReplicaCount: toPtr[int32](1),
-	},
-	{
-		Name:                 toPtr("westeurope"),
-		RegionalReplicaCount: toPtr[int32](1),
-	},
-	{
-		Name:                 toPtr("westus"),
-		RegionalReplicaCount: toPtr[int32](1),
-	},
-	{
-		Name:                 toPtr("southeastasia"),
-		RegionalReplicaCount: toPtr[int32](1),
-	},
+func replication(location string, regions []string, count int32) []*armcomputev5.TargetRegion {
+	targetRegions := []*armcomputev5.TargetRegion{
+		{
+			Name:                 toPtr(location),
+			RegionalReplicaCount: toPtr[int32](count),
+		},
+	}
+	for _, region := range regions {
+		if region == location {
+			continue
+		}
+		targetRegions = append(targetRegions, &armcomputev5.TargetRegion{
+			Name:                 toPtr(region),
+			RegionalReplicaCount: toPtr[int32](count),
+		})
+	}
+
+	return targetRegions
 }

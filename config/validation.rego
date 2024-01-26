@@ -409,6 +409,7 @@ required_fields := {
     "azure": {
         "subscriptionID": input.Azure.SubscriptionID,
         "location": input.Azure.Location,
+        "replicationRegions": input.Azure.ReplicationRegions,
         "resourceGroup": input.Azure.ResourceGroup,
         "attestationVariant": input.Azure.AttestationVariant,
         "sharedImageGallery": input.Azure.SharedImageGallery,
