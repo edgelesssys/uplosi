@@ -82,6 +82,12 @@ project = "myproject-123456"
 location = "europe-west3"
 bucket = "my-bucket"
 
+[base.openstack]
+# OpenStack specific configuration that is applied to every variant.
+cloud = "mycloud"
+tags = ["tag-a", "tag-b"]
+minDiskGB = 32
+
 [variant.foo]
 # Variant specific configuration that overrides the base configuration.
 provider = "aws"
@@ -364,3 +370,67 @@ Will be created if it does not exist.
 - Template: yes
 
 Name of the temporary blob within `bucket`. Image is uploaded to this blob before being converted to an image.
+
+### `base.openstack.cloud` / `variant.<name>.openstack.cloud`
+
+- Default: none
+- Required: yes
+
+Name in OpenStack's cloud.yaml used for authentication.
+
+### `base.openstack.imageName` / `variant.<name>.openstack.imageName`
+
+- Default: `"{{.Name}}-{{.Version}}"`
+- Required: no
+- Template: yes
+
+Name of the image to create. Example: `"my-image-1.0.0"`.
+
+### `base.openstack.visibility` / `variant.<name>.openstack.visibility`
+
+- Default: `"public"`
+- Required: no
+
+Visibility of the image to create. Possible values are "public", "private", "shared", "community"`.
+
+### `base.openstack.hidden` / `variant.<name>.openstack.hidden`
+
+- Default: `false`
+- Required: no
+
+Hidden status of the image in listings.
+
+### `base.openstack.tags` / `variant.<name>.openstack.tags`
+
+- Default: `[]`
+- Required: no
+
+Tags added to the image.
+
+### `base.openstack.minDiskGB` / `variant.<name>.openstack.minDiskGB`
+
+- Default: `0`
+- Required: no
+
+Minimum disk size of the image in GB.
+
+### `base.openstack.minRamMB` / `variant.<name>.openstack.minRamMB`
+
+- Default: `0`
+- Required: no
+
+Minimum amount of RAM reserved for a VM created from this image.
+
+### `base.openstack.protected` / `variant.<name>.openstack.protected`
+
+- Default: `false`
+- Required: no
+
+If set, prevents accidential deletion of the image.
+
+### `base.openstack.properties` / `variant.<name>.openstack.properties`
+
+- Default: `{}`
+- Required: no
+
+Extra key-value pairs attached to the image. Example: `{"hw_firmware_type" = "uefi", "os_type" = "linux"}`.

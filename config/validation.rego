@@ -365,6 +365,14 @@ deny[msg] {
     msg = sprintf("field bucket must be between 1 and 63 characters for provider gcp, got %d", [count(input.GCP.Bucket)])
 }
 
+deny[msg] {
+    input.Provider == "openstack"
+    input.OpenStack.Visibility != ""
+    allowed := ["public", "private", "shared", "community"]
+    not input.OpenStack.Visibility in allowed
+
+    msg = sprintf("field visibility must be one of %s for provider openstack", allowed)
+}
 
 deny[msg] {
     some provider in valid_csps
@@ -395,7 +403,7 @@ begin_and_end_with(s, charset) = begin_and_end {
     ])
 }
 
-valid_csps := [ "aws", "azure", "gcp" ]
+valid_csps := [ "aws", "azure", "gcp", "openstack" ]
 
 required_fields := {
     "aws": {
@@ -428,6 +436,10 @@ required_fields := {
         "imageFamily": input.GCP.ImageFamily,
         "bucket": input.GCP.Bucket,
         "blobName": input.GCP.BlobName,
+    },
+    "openstack": {
+        "cloud": input.OpenStack.Cloud,
+        "imageName": input.OpenStack.ImageName,
     },
 }
 

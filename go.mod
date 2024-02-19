@@ -44,7 +44,9 @@ require (
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
@@ -92,6 +94,8 @@ require (
 	github.com/aws/smithy-go v1.19.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/uuid v1.5.0 // indirect
+	github.com/gophercloud/gophercloud v1.9.0
+	github.com/gophercloud/utils v0.0.0-20231010081019-80377eca5d56
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect

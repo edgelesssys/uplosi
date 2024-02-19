@@ -22,6 +22,7 @@ import (
 	"github.com/edgelesssys/uplosi/azure"
 	"github.com/edgelesssys/uplosi/config"
 	"github.com/edgelesssys/uplosi/gcp"
+	"github.com/edgelesssys/uplosi/openstack"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -157,6 +158,12 @@ func uploadVariant(ctx context.Context, imagePath, variant string, config config
 		upload, err = gcp.NewUploader(config, logger)
 		if err != nil {
 			return nil, fmt.Errorf("creating gcp uploader: %w", err)
+		}
+	case "openstack":
+		prepper = &openstack.Prepper{}
+		upload, err = openstack.NewUploader(config, logger)
+		if err != nil {
+			return nil, fmt.Errorf("creating openstack uploader: %w", err)
 		}
 	default:
 		return nil, fmt.Errorf("unknown provider: %s", config.Provider)

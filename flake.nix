@@ -20,7 +20,7 @@
             version = "0.1.2";
             src = ./.;
             # this needs to be updated together with go.mod / go.sum
-            vendorHash = "sha256-eZ0/piSxMUC1ZM7qBhFW40l9p8ZPMIj1HyrS2Dy4wJQ=";
+            vendorHash = "sha256-XKVkZrvEuj3+6Sxl687Tce88VhRxEAKfjOJzBd2c/Ac=";
 
             CGO_ENABLED = 0;
 
