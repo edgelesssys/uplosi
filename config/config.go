@@ -44,16 +44,22 @@ var defaultConfig = Config{
 		ImageFamily: "{{.Name}}",
 		BlobName:    "{{.Name}}-{{replaceAll .Version \".\" \"-\"}}.tar.gz",
 	},
+	OpenStack: OpenStackConfig{
+		ImageName:  "{{.Name}}-{{.Version}}",
+		Visibility: "public",
+		Protected:  Some(false),
+	},
 }
 
 type Config struct {
-	Provider         string      `toml:"provider"`
-	ImageVersion     string      `toml:"imageVersion"`
-	ImageVersionFile string      `toml:"imageVersionFile"`
-	Name             string      `toml:"name"`
-	AWS              AWSConfig   `toml:"aws,omitempty"`
-	Azure            AzureConfig `toml:"azure,omitempty"`
-	GCP              GCPConfig   `toml:"gcp,omitempty"`
+	Provider         string          `toml:"provider"`
+	ImageVersion     string          `toml:"imageVersion"`
+	ImageVersionFile string          `toml:"imageVersionFile"`
+	Name             string          `toml:"name"`
+	AWS              AWSConfig       `toml:"aws,omitempty"`
+	Azure            AzureConfig     `toml:"azure,omitempty"`
+	GCP              GCPConfig       `toml:"gcp,omitempty"`
+	OpenStack        OpenStackConfig `toml:"openstack,omitempty"`
 }
 
 func (c *Config) Merge(other Config) error {
@@ -80,6 +86,9 @@ func (c *Config) Render(fileLookup func(name string) ([]byte, error)) error {
 		return err
 	}
 	if err := c.renderTemplates(&c.GCP); err != nil {
+		return err
+	}
+	if err := c.renderTemplates(&c.OpenStack); err != nil {
 		return err
 	}
 
@@ -197,6 +206,18 @@ type GCPConfig struct {
 	ImageFamily string `toml:"imageFamily,omitempty" template:"true"`
 	Bucket      string `toml:"bucket,omitempty" template:"true"`
 	BlobName    string `toml:"blobName,omitempty" template:"true"`
+}
+
+type OpenStackConfig struct {
+	Cloud      string            `toml:"cloud"`
+	ImageName  string            `toml:"imageName,omitempty" template:"true"`
+	Visibility string            `toml:"visibility,omitempty"`
+	Hidden     Option[bool]      `toml:"hidden,omitempty"`
+	Tags       []string          `toml:"tags,omitempty"`
+	MinDiskGB  int               `toml:"minDiskGB,omitempty"`
+	MinRamMB   int               `toml:"minRamMB,omitempty"`
+	Protected  Option[bool]      `toml:"protected,omitempty"`
+	Properties map[string]string `toml:"properties"`
 }
 
 type ConfigFile struct {
