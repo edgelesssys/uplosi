@@ -58,7 +58,7 @@ func newUploadCmd() *cobra.Command {
 	cmd.Flags().BoolP("increment-version", "i", false, "increment version number after upload")
 	cmd.Flags().StringSlice("enable-variant-glob", []string{"*"}, "list of variant name globs to enable")
 	cmd.Flags().StringSlice("disable-variant-glob", nil, "list of variant name globs to disable")
-	cmd.Flags().StringP("config", "c", "", fmt.Sprintf("path to directory %s or %s resides in", configName, configDir))
+	cmd.Flags().StringP("config", "c", "", fmt.Sprintf("path to directory %s and %s resides in", configName, configDir))
 
 	return cmd
 }
