@@ -273,12 +273,8 @@ type Uploader interface {
 }
 
 func parseConfigFiles(configPath string) (*config.ConfigFile, error) {
-	configLocation := configName
-	configDirLocation := configDir
-	if configPath != "" {
-		configLocation = path.Join(configPath, configName)
-		configDirLocation = path.Join(configPath, configDir)
-	}
+	configLocation := path.Join(configPath, configName)
+	configDirLocation := path.Join(configPath, configDir)
 
 	var conf config.ConfigFile
 	if err := readTOMLFile(configLocation, &conf); err != nil {
