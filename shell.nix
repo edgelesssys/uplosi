@@ -1,7 +1,7 @@
 { pkgs, ... }:
 pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
-    go_1_21
+    go
     golangci-lint
     goreleaser
   ];

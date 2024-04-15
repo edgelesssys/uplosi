@@ -17,7 +17,7 @@
           pkgs = nixpkgs.legacyPackages.${system};
           uplosi = pkgs.buildGoModule {
             pname = "uplosi";
-            version = "0.1.2";
+            version = "0.2.0";
             src = ./.;
             # this needs to be updated together with go.mod / go.sum
             vendorHash = "sha256-0uQBhNRP3OGn3hw6Mx6tRliTqIhoBnyfRmdtdtuYwaY=";
