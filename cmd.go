@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -57,6 +58,7 @@ func newUploadCmd() *cobra.Command {
 	cmd.Flags().BoolP("increment-version", "i", false, "increment version number after upload")
 	cmd.Flags().StringSlice("enable-variant-glob", []string{"*"}, "list of variant name globs to enable")
 	cmd.Flags().StringSlice("disable-variant-glob", nil, "list of variant name globs to disable")
+	cmd.Flags().StringP("config", "c", "", fmt.Sprintf("path to directory %s and %s resides in", configName, configDir))
 
 	return cmd
 }
@@ -70,7 +72,7 @@ func runUpload(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	conf, err := parseConfigFiles()
+	conf, err := parseConfigFiles(flags.configPath)
 	if err != nil {
 		return fmt.Errorf("parsing config files: %w", err)
 	}
@@ -201,6 +203,7 @@ type uploadFlags struct {
 	incrementVersion    bool
 	enableVariantGlobs  []string
 	disableVariantGlobs []string
+	configPath          string
 }
 
 func parseUploadFlags(cmd *cobra.Command) (*uploadFlags, error) {
@@ -216,10 +219,15 @@ func parseUploadFlags(cmd *cobra.Command) (*uploadFlags, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting disable-variant-glob flag: %w", err)
 	}
+	configPath, err := cmd.Flags().GetString("config")
+	if err != nil {
+		return nil, fmt.Errorf("getting config flag: %w", err)
+	}
 	return &uploadFlags{
 		incrementVersion:    incrementVersion,
 		enableVariantGlobs:  enableVariantGlobs,
 		disableVariantGlobs: disableVariantGlobs,
+		configPath:          configPath,
 	}, nil
 }
 
@@ -264,13 +272,16 @@ type Uploader interface {
 	Upload(ctx context.Context, image io.ReadSeeker, size int64) (refs []string, retErr error)
 }
 
-func parseConfigFiles() (*config.ConfigFile, error) {
+func parseConfigFiles(configPath string) (*config.ConfigFile, error) {
+	configLocation := path.Join(configPath, configName)
+	configDirLocation := path.Join(configPath, configDir)
+
 	var conf config.ConfigFile
-	if err := readTOMLFile(configName, &conf); err != nil {
+	if err := readTOMLFile(configLocation, &conf); err != nil {
 		return nil, fmt.Errorf("reading config: %w", err)
 	}
 
-	dirEntries, err := os.ReadDir(configDir)
+	dirEntries, err := os.ReadDir(configDirLocation)
 	if os.IsNotExist(err) {
 		return &conf, nil
 	}
