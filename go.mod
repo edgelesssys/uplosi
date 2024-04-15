@@ -17,7 +17,7 @@ require (
 	github.com/aws/smithy-go v1.20.2
 	github.com/googleapis/gax-go/v2 v2.12.3
 	github.com/gophercloud/gophercloud v1.11.0
-	github.com/gophercloud/utils v0.0.0-20231010081019-80377eca5d56
+	github.com/gophercloud/utils c2cbb9f23ff9
 	github.com/open-policy-agent/opa v0.63.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
