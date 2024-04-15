@@ -3,22 +3,22 @@ module github.com/edgelesssys/uplosi
 go 1.21
 
 require (
-	cloud.google.com/go/compute v1.23.3
-	cloud.google.com/go/storage v1.36.0
+	cloud.google.com/go/compute v1.25.1
+	cloud.google.com/go/storage v1.40.0
 	dario.cat/mergo v1.0.0
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.1
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.4.0
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.4.0
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.2.1
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.2
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.6.0
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.3.2
 	github.com/BurntSushi/toml v1.3.2
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.142.0
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.47.7
-	github.com/aws/aws-sdk-go-v2/service/sts v1.26.6
-	github.com/googleapis/gax-go/v2 v2.12.0
-	github.com/open-policy-agent/opa v0.60.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.156.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1
+	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6
+	github.com/googleapis/gax-go/v2 v2.12.3
+	github.com/open-policy-agent/opa v0.63.0
 	github.com/spf13/cobra v1.8.0
-	github.com/stretchr/testify v1.8.4
-	golang.org/x/mod v0.14.0
+	github.com/stretchr/testify v1.9.0
+	golang.org/x/mod v0.17.0
 )
 
 require (
@@ -82,8 +82,8 @@ require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.1.1 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.24.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 // indirect
-	github.com/aws/aws-sdk-go-v2/config v1.26.2
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.15.9
+	github.com/aws/aws-sdk-go-v2/config v1.27.11
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.15
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.9 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.9 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.2.9 // indirect
@@ -91,11 +91,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.2.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.16.9 // indirect
-	github.com/aws/smithy-go v1.19.0
+	github.com/aws/smithy-go v1.20.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/uuid v1.5.0 // indirect
-	github.com/gophercloud/gophercloud v1.9.0
-	github.com/gophercloud/utils v0.0.0-20231010081019-80377eca5d56
+	github.com/gophercloud/gophercloud v1.11.0
+	github.com/gophercloud/utils c2cbb9f23ff9
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
