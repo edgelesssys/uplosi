@@ -14,14 +14,14 @@ Alternatively, you can download the binary from the [releases page](https://gith
 # Usage
 
 ```shell-session
-uplosi <image> [flags]
+uplosi <command> <image> [flags]
 ```
 
 ## Examples
 
 ```shell-session
 # edit uplosi.conf, then run
-uplosi image.raw -i
+uplosi upload image.raw -i
 ```
 
 ## Flags
@@ -74,7 +74,7 @@ subscriptionID = "00000000-0000-0000-0000-000000000000"
 location = "northeurope"
 resourceGroup = "my-rg"
 sharedImageGallery = "my_gallery"
-sharingNamePrefix = "my-shared-"
+sharingNamePrefix = "myshared"
 
 [base.gcp]
 # GCP specific configuration that is applied to every variant.
