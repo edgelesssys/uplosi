@@ -14,7 +14,7 @@ Alternatively, you can download the binary from the [releases page](https://gith
 # Usage
 
 ```shell-session
-uplosi <command> <image> [flags]
+uplosi upload <image> [flags]
 ```
 
 ## Examples
