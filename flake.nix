@@ -24,7 +24,7 @@
 
             CGO_ENABLED = 0;
 
-            ldflags = [ "-s" "-w" "-buildid=" ];
+            ldflags = [ "-s" ];
 
             nativeBuildInputs = [ pkgs.installShellFiles ];
 
