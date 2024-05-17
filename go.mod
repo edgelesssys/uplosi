@@ -1,6 +1,6 @@
 module github.com/edgelesssys/uplosi
 
-go 1.21
+go 1.22.2
 
 require (
 	cloud.google.com/go/compute v1.25.1
