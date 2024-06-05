@@ -15,18 +15,22 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.9
 	github.com/aws/smithy-go v1.20.2
+	github.com/foxboron/go-uefi v0.0.0-20240522180132-205d5597883a
 	github.com/googleapis/gax-go/v2 v2.12.4
 	github.com/gophercloud/gophercloud v1.11.0
 	github.com/gophercloud/utils v0.0.0-20231010081019-80377eca5d56
 	github.com/open-policy-agent/opa v0.64.1
+	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
+	go.uber.org/goleak v1.3.0
 	golang.org/x/mod v0.17.0
 )
 
 require (
 	cloud.google.com/go/auth v0.4.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 )
 
 require (
@@ -98,7 +102,7 @@ require (
 	golang.org/x/oauth2 v0.20.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/text v0.15.0
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/api v0.181.0 // indirect
 	google.golang.org/genproto v0.0.0-20240515191416-fc5f0ca64291 // indirect
