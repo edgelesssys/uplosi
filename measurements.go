@@ -19,12 +19,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newPrecalculateMeasurementsCmd() *cobra.Command {
+func newMeasurementsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "precalculate-measurements <image>",
+		Use:   "measurements <image>",
 		Short: "Precalculate TPM PCR measurements for an image",
 		Args:  cobra.ExactArgs(1),
-		RunE:  runPrecalculateMeasurements,
+		RunE:  runMeasurements,
 	}
 	cmd.Flags().StringP("output-file", "o", "", "Output file for the precalculated measurements")
 	cmd.Flags().StringP("uki-path", "u", measuredboot.UkiPath, "Path to the UKI file in the image")
@@ -32,8 +32,8 @@ func newPrecalculateMeasurementsCmd() *cobra.Command {
 	return cmd
 }
 
-func runPrecalculateMeasurements(cmd *cobra.Command, args []string) error {
-	flags, err := parsePrecalculateMeasurementsFlags(cmd)
+func runMeasurements(cmd *cobra.Command, args []string) error {
+	flags, err := parseMeasurementsFlags(cmd)
 	if err != nil {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
@@ -56,12 +56,12 @@ func runPrecalculateMeasurements(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-type precalculateMeasurementsFlags struct {
+type measurementsFlags struct {
 	outputFile string
 	ukiPath    string
 }
 
-func parsePrecalculateMeasurementsFlags(cmd *cobra.Command) (*precalculateMeasurementsFlags, error) {
+func parseMeasurementsFlags(cmd *cobra.Command) (*measurementsFlags, error) {
 	outputFile, err := cmd.Flags().GetString("output-file")
 	if err != nil {
 		return nil, fmt.Errorf("getting output-file flag: %w", err)
@@ -70,7 +70,7 @@ func parsePrecalculateMeasurementsFlags(cmd *cobra.Command) (*precalculateMeasur
 	if err != nil {
 		return nil, fmt.Errorf("getting uki-path flag: %w", err)
 	}
-	return &precalculateMeasurementsFlags{
+	return &measurementsFlags{
 		outputFile: outputFile,
 		ukiPath:    ukiPath,
 	}, nil

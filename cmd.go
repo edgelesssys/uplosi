@@ -23,7 +23,7 @@ func newRootCmd() *cobra.Command {
 	cmd.SetOut(os.Stdout)
 	cmd.InitDefaultVersionFlag()
 	cmd.AddCommand(newUploadCmd())
-	cmd.AddCommand(newPrecalculateMeasurementsCmd())
+	cmd.AddCommand(newMeasurementsCmd())
 
 	return cmd
 }
