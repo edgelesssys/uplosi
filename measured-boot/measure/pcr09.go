@@ -32,16 +32,11 @@ func DescribeLinuxLoad2(w io.Writer, cmdline []byte, initrdDigest [32]byte) erro
 func PredictPCR9(simulator *Simulator, cmdline []byte, initrdDigest [32]byte) error {
 	// Linux LOAD_FILE2 protocol
 
-	// TODO(msanft): Revise the below. It seems that this doesn't necessarily hold true
-	// for all distributions.
-
-	// Linux LOAD_FILE2 protocol - efi_convert_cmdline
-	// https://github.com/torvalds/linux/blob/42dc814987c1feb6410904e58cfd4c36c4146150/drivers/firmware/efi/libstub/efi-stub-helper.c#L280
-	// kernel cmdline is null terminated utf-8
-	// will be loaded / measured as UTF-16LE
-	// if len(cmdline) == 0 || cmdline[len(cmdline)-1] != 0 {
-	// 	return fmt.Errorf("kernel cmdline must be null terminated")
-	// }
+	// Some UKI builders will not null-terminate the command line, so we do it here.
+	// See: https://github.com/systemd/mkosi/blob/abef37482330e5b3fdc8ba72bff0bdcedbf6006d/mkosi/__init__.py#L2030
+	if len(cmdline) == 0 || cmdline[len(cmdline)-1] != 0 {
+		cmdline = append(cmdline, 0)
+	}
 
 	cmdlineUTF16LE, err := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewEncoder().Bytes(cmdline)
 	if err != nil {
