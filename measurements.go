@@ -22,7 +22,7 @@ import (
 func newMeasurementsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "measurements <image>",
-		Short: "Precalculate TPM PCR measurements for an image",
+		Short: "Precalculate TPM PCR measurements for an image. Requires 'systemd-dissect' to be in the PATH.",
 		Args:  cobra.ExactArgs(1),
 		RunE:  runMeasurements,
 	}

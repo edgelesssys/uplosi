@@ -1,9 +1,3 @@
-/*
-Copyright (c) Edgeless Systems GmbH
-
-SPDX-License-Identifier: AGPL-3.0-only
-*/
-
 package measure
 
 import (
@@ -13,5 +7,5 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	goleak.VerifyTestMain(m, goleak.IgnoreAnyFunction("github.com/bazelbuild/rules_go/go/tools/bzltestutil.RegisterTimeoutHandler.func1"))
+	goleak.VerifyTestMain(m)
 }
