@@ -11,25 +11,59 @@ go install github.com/edgelesssys/uplosi@latest
 
 Alternatively, you can download the binary from the [releases page](https://github.com/edgelesssys/uplosi/releases/latest).
 
-# Usage
+# Uploading OS Images
+
+The main purpose of uplosi is to upload OS images to cloud providers.
+Uploading images requires a [configuration file](#configuration) to be present in the current working directory.
+
+## Usage
 
 ```shell-session
 uplosi upload <image> [flags]
 ```
 
-## Examples
+### Examples
 
 ```shell-session
 # edit uplosi.conf, then run
 uplosi upload image.raw -i
 ```
 
-## Flags
+### Flags
 
 - `--disable-variant-glob` string: list of variant name globs to disable
 - `--enable-variant-glob` string: list of variant name globs to enable
 - `-h`,`--help`: help for uplosi
 - `-i`,`--increment-version`: increment version number after upload
+- `-v`: version for uplosi
+
+# Calculating TPM PCR Values
+
+> [!WARNING]
+> This command is highly experimental. It does not account for all PCRs and all possibilities of their measurements,
+> is only tested in a very specific environment and should not be used in production use-cases.
+
+Uplosi can also, from a given raw disk image, calculate TPM PCR values (Namely PCRs 4, 9, and 11)
+ahead of the image boot to allow to craft remote attestation policies for images.
+It requires `systemd-dissect` to be present in `$PATH`.
+
+## Usage
+
+```shell-session
+sudo uplosi measurements <image> [flags]
+```
+
+### Examples
+
+```shell-session
+sudo uplosi measurements image.raw --output-file pcrs.json
+```
+
+### Flags
+
+- `--output-file` string: path to a JSON file the output should be written to
+- `--uki-path` string: path to the unified kernel image (UKI) within the ESP of the image (default: `/boot/EFI/BOOT/BOOTX64.EFI`)
+- `-h`,`--help`: help for uplosi
 - `-v`: version for uplosi
 
 # Configuration
