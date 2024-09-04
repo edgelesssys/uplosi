@@ -184,19 +184,20 @@ type AWSConfig struct {
 }
 
 type AzureConfig struct {
-	SubscriptionID      string   `toml:"subscriptionID,omitempty"`
-	Location            string   `toml:"location,omitempty"`
-	ReplicationRegions  []string `toml:"replicationRegions,omitempty"`
-	ResourceGroup       string   `toml:"resourceGroup,omitempty" template:"true"`
-	AttestationVariant  string   `toml:"attestationVariant,omitempty" template:"true"`
-	SharedImageGallery  string   `toml:"sharedImageGallery,omitempty" template:"true"`
-	SharingProfile      string   `toml:"sharingProfile,omitempty" template:"true"`
-	SharingNamePrefix   string   `toml:"sharingNamePrefix,omitempty" template:"true"`
-	ImageDefinitionName string   `toml:"imageDefinitionName,omitempty" template:"true"`
-	Offer               string   `toml:"offer,omitempty" template:"true"`
-	SKU                 string   `toml:"sku,omitempty" template:"true"`
-	Publisher           string   `toml:"publisher,omitempty" template:"true"`
-	DiskName            string   `toml:"diskName,omitempty" template:"true"`
+	SubscriptionID       string   `toml:"subscriptionID,omitempty"`
+	Location             string   `toml:"location,omitempty"`
+	ReplicationRegions   []string `toml:"replicationRegions,omitempty"`
+	ResourceGroup        string   `toml:"resourceGroup,omitempty" template:"true"`
+	AttestationVariant   string   `toml:"attestationVariant,omitempty" template:"true"`
+	SharedImageGallery   string   `toml:"sharedImageGallery,omitempty" template:"true"`
+	SharingProfile       string   `toml:"sharingProfile,omitempty" template:"true"`
+	SharingNamePrefix    string   `toml:"sharingNamePrefix,omitempty" template:"true"`
+	ImageDefinitionName  string   `toml:"imageDefinitionName,omitempty" template:"true"`
+	Offer                string   `toml:"offer,omitempty" template:"true"`
+	SKU                  string   `toml:"sku,omitempty" template:"true"`
+	Publisher            string   `toml:"publisher,omitempty" template:"true"`
+	DiskName             string   `toml:"diskName,omitempty" template:"true"`
+	AdditionalSignatures []string `toml:"additionalSignatures,omitempty"`
 }
 
 type GCPConfig struct {

@@ -483,6 +483,29 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 			},
 		},
 	}
+
+	if u.config.Azure.AdditionalSignatures != nil {
+		value := make([]*string, 0)
+		for _, sig := range u.config.Azure.AdditionalSignatures {
+			value = append(value, toPtr(sig))
+		}
+		imageVersion.Properties.SecurityProfile = &armcomputev5.ImageVersionSecurityProfile{
+			UefiSettings: &armcomputev5.GalleryImageVersionUefiSettings{
+				SignatureTemplateNames: []*armcomputev5.UefiSignatureTemplateName{
+					toPtr(armcomputev5.UefiSignatureTemplateNameMicrosoftUefiCertificateAuthorityTemplate),
+				},
+				AdditionalSignatures: &armcomputev5.UefiKeySignatures{
+					Db: []*armcomputev5.UefiKey{
+						&armcomputev5.UefiKey{
+							Type:  toPtr(armcomputev5.UefiKeyTypeX509),
+							Value: value,
+						},
+					},
+				},
+			},
+		}
+	}
+
 	createPoller, err := u.imageVersions.BeginCreateOrUpdate(ctx, rg, sigName, defName, verName, imageVersion,
 		&armcomputev5.GalleryImageVersionsClientBeginCreateOrUpdateOptions{},
 	)
