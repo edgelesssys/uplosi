@@ -332,7 +332,7 @@ Name of the temporary disk. Image is uploaded to this disk before being converte
 - Default: `[]`
 - Required: no
 
-Additional Secure Boot UEFI certificates can be added to the image to perform Trusted Launch with images that contain boot components which have been signed using a custom key. The certificates will be bound as UEFI db keys to an Image Version. The values have to specified as single-line base64-encoded DER certificates. Example: `["MIIC0DCCAbigAwIBAgIUI7..."]`.
+Additional Secure Boot UEFI certificates can be added to the image to perform Trusted Launch with images that contain boot components which have been signed using a custom key. The certificates will be bound as UEFI db keys to an Image Version. The values have to be specified as single-line base64-encoded DER certificates. Example: `["MIIC0DCCAbigAwIBAgIUI7..."]`.
 
 ### `base.gcp.project` / `variant.<name>.gcp.project`
 
