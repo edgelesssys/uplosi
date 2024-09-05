@@ -37,35 +37,6 @@ uplosi upload image.raw -i
 - `-i`,`--increment-version`: increment version number after upload
 - `-v`: version for uplosi
 
-# Calculating TPM PCR Values
-
-> [!WARNING]
-> This command is highly experimental. It does not account for all PCRs and all possibilities of their measurements,
-> is only tested in a very specific environment and should not be used in production use-cases.
-
-Uplosi can also, from a given raw disk image, calculate TPM PCR values (Namely PCRs 4, 9, and 11)
-ahead of the image boot to allow to craft remote attestation policies for images.
-It requires `systemd-dissect` to be present in `$PATH`.
-
-## Usage
-
-```shell-session
-sudo uplosi measurements <image> [flags]
-```
-
-### Examples
-
-```shell-session
-sudo uplosi measurements image.raw --output-file pcrs.json
-```
-
-### Flags
-
-- `--output-file` string: path to a JSON file the output should be written to
-- `--uki-path` string: path to the unified kernel image (UKI) within the ESP of the image (default: `/boot/EFI/BOOT/BOOTX64.EFI`)
-- `-h`,`--help`: help for uplosi
-- `-v`: version for uplosi
-
 # Configuration
 
 Uplosi requires configuration files in [TOML format](https://toml.io/en/) to be present in the user's workspace (CWD).
@@ -468,3 +439,32 @@ If set, prevents accidential deletion of the image.
 - Required: no
 
 Extra key-value pairs attached to the image. Example: `{"hw_firmware_type" = "uefi", "os_type" = "linux"}`.
+
+# Calculating TPM PCR Values
+
+> [!WARNING]
+> This command is highly experimental. It does not account for all PCRs and all possibilities of their measurements,
+> is only tested in a very specific environment and should not be used in production use-cases.
+
+Uplosi can also, from a given raw disk image, calculate TPM PCR values (Namely PCRs 4, 9, and 11)
+ahead of the image boot to allow to craft remote attestation policies for images.
+It requires `systemd-dissect` to be present in `$PATH`.
+
+## Usage
+
+```shell-session
+sudo uplosi measurements <image> [flags]
+```
+
+### Examples
+
+```shell-session
+sudo uplosi measurements image.raw --output-file pcrs.json
+```
+
+### Flags
+
+- `--output-file` string: path to a JSON file the output should be written to
+- `--uki-path` string: path to the unified kernel image (UKI) within the ESP of the image (default: `/boot/EFI/BOOT/BOOTX64.EFI`)
+- `-h`,`--help`: help for uplosi
+- `-v`: version for uplosi
