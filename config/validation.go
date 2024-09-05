@@ -44,7 +44,7 @@ func (v *Validator) Validate(ctx context.Context, config Config) error {
 				switch val := v.(type) {
 				// Policies that only return a single string (e.g. deny[msg])
 				case string:
-					resErr = errors.Join(resErr, fmt.Errorf(val))
+					resErr = errors.Join(resErr, errors.New(val))
 				}
 			}
 		}

@@ -118,7 +118,7 @@ type OptionTransformer struct{}
 
 func (t OptionTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
 	if typ.Kind() != reflect.Ptr {
-		typ = reflect.PtrTo(typ)
+		typ = reflect.PointerTo(typ)
 	}
 	if _, ok := typ.MethodByName("IsSome"); !ok {
 		return nil
