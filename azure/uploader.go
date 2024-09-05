@@ -485,7 +485,7 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 	}
 
 	if u.config.Azure.AdditionalSignatures != nil {
-		value := make([]*string, 0)
+		var value []*string
 		for _, sig := range u.config.Azure.AdditionalSignatures {
 			value = append(value, toPtr(sig))
 		}
