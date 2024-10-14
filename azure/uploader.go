@@ -358,16 +358,20 @@ func (u *Uploader) ensureSIG(ctx context.Context) error {
 		return nil
 	}
 	u.log.Printf("Creating image gallery %s in %s", sigName, rg)
+	var communityGalleryInfo *armcomputev5.CommunityGalleryInfo
+	if u.config.Azure.SharingProfile == "community" {
+		communityGalleryInfo = &armcomputev5.CommunityGalleryInfo{
+			PublicNamePrefix: &pubNamePrefix,
+			Eula:             toPtr("none"),
+			PublisherContact: toPtr("test@foo.bar"),
+			PublisherURI:     toPtr("https://foo.bar"),
+		}
+	}
 	gallery := armcomputev5.Gallery{
 		Location: &u.config.Azure.Location,
 		Properties: &armcomputev5.GalleryProperties{
 			SharingProfile: &armcomputev5.SharingProfile{
-				CommunityGalleryInfo: &armcomputev5.CommunityGalleryInfo{
-					PublicNamePrefix: &pubNamePrefix,
-					Eula:             toPtr("none"),
-					PublisherContact: toPtr("test@foo.bar"),
-					PublisherURI:     toPtr("https://foo.bar"),
-				},
+				CommunityGalleryInfo: communityGalleryInfo,
 				Permissions: sharingProf,
 			},
 		},
