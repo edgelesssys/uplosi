@@ -383,44 +383,56 @@ func (u *Uploader) ensureResourceGroup(ctx context.Context) error {
 func (u *Uploader) ensureSIG(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
 	sigName := u.config.Azure.SharedImageGallery
-	pubNamePrefix := u.config.Azure.SharingNamePrefix
-	sharingProf := sharingProfilePermissionFromString(u.config.Azure.SharingProfile)
 
-	resp, err := u.galleries.Get(ctx, rg, sigName, &armcomputev5.GalleriesClientGetOptions{})
-	if err == nil {
-		u.log.Printf("Image gallery %s in %s exists", sigName, rg)
-		if resp.Gallery.Properties == nil {
-			return errors.New("image gallery has no properties")
-		}
-		if resp.Gallery.Properties.SharingProfile == nil {
-			return errors.New("image gallery has no sharing profile")
-		}
-		if resp.Gallery.Properties.SharingProfile.Permissions == nil {
-			return errors.New("image gallery has no sharing profile permissions")
-		}
-		if *resp.Gallery.Properties.SharingProfile.Permissions != *sharingProf {
-			return errors.New("image gallery has different sharing profile permissions, cannot update automatically")
-		}
-		return nil
-	}
 	u.log.Printf("Creating image gallery %s in %s", sigName, rg)
-	var communityGalleryInfo *armcomputev5.CommunityGalleryInfo
-	if u.config.Azure.SharingProfile == "community" {
-		communityGalleryInfo = &armcomputev5.CommunityGalleryInfo{
-			PublicNamePrefix: &pubNamePrefix,
-			Eula:             toPtr("none"),
-			PublisherContact: toPtr("test@foo.bar"),
-			PublisherURI:     toPtr("https://foo.bar"),
+
+	var gallery armcomputev5.Gallery
+
+	if u.config.Azure.SharingProfile == "private" {
+		gallery = armcomputev5.Gallery{
+			Location: &u.config.Azure.Location,
 		}
-	}
-	gallery := armcomputev5.Gallery{
-		Location: &u.config.Azure.Location,
-		Properties: &armcomputev5.GalleryProperties{
-			SharingProfile: &armcomputev5.SharingProfile{
-				CommunityGalleryInfo: communityGalleryInfo,
-				Permissions:          sharingProf,
+	} else {
+		pubNamePrefix := u.config.Azure.SharingNamePrefix
+		sharingProf := sharingProfilePermissionFromString(u.config.Azure.SharingProfile)
+
+		resp, err := u.galleries.Get(ctx, rg, sigName, &armcomputev5.GalleriesClientGetOptions{})
+		if err == nil {
+			u.log.Printf("Image gallery %s in %s exists", sigName, rg)
+			if resp.Gallery.Properties == nil {
+				return errors.New("image gallery has no properties")
+			}
+			if resp.Gallery.Properties.SharingProfile == nil {
+				return errors.New("image gallery has no sharing profile")
+			}
+			if resp.Gallery.Properties.SharingProfile.Permissions == nil {
+				return errors.New("image gallery has no sharing profile permissions")
+			}
+			if *resp.Gallery.Properties.SharingProfile.Permissions != *sharingProf {
+				return errors.New("image gallery has different sharing profile permissions, cannot update automatically")
+			}
+			return nil
+		}
+
+		var communityGalleryInfo *armcomputev5.CommunityGalleryInfo
+		if u.config.Azure.SharingProfile == "community" {
+			communityGalleryInfo = &armcomputev5.CommunityGalleryInfo{
+				PublicNamePrefix: &pubNamePrefix,
+				Eula:             toPtr("none"),
+				PublisherContact: toPtr("test@foo.bar"),
+				PublisherURI:     toPtr("https://foo.bar"),
+			}
+		}
+
+		gallery = armcomputev5.Gallery{
+			Location: &u.config.Azure.Location,
+			Properties: &armcomputev5.GalleryProperties{
+				SharingProfile: &armcomputev5.SharingProfile{
+					CommunityGalleryInfo: communityGalleryInfo,
+					Permissions:          sharingProf,
+				},
 			},
-		},
+		}
 	}
 	opts := &armcomputev5.GalleriesClientBeginCreateOrUpdateOptions{}
 	createPoller, err := u.galleries.BeginCreateOrUpdate(ctx, rg, sigName, gallery, opts)
