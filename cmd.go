@@ -16,6 +16,7 @@ var version = "0.0.0-dev"
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
+		Use:              "uplosi",
 		Short:            "uplosi is a tool for uploading images to a cloud provider",
 		PersistentPreRun: preRunRoot,
 		Version:          version,
