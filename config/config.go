@@ -295,6 +295,11 @@ func (c *ConfigFile) validateAll(fileLookup fileLookupFn, filters ...variantFilt
 		}
 		variantNames = append(variantNames, name)
 	}
+
+	if len(c.Variants) != 0 && len(variantNames) == 0 {
+		return errors.New("all variants were filtered out")
+	}
+
 	slices.Sort(variantNames)
 	for _, name := range variantNames {
 		_, err := c.RenderedVariant(fileLookup, name)
