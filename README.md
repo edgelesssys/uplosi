@@ -284,7 +284,7 @@ Community images are publicly available, group images are available to a specifi
 - Required: if `sharingProfile` is `community` or `groups`
 - Template: yes
 
-Prefix for the shared image name. Example: `"my-image"`.
+Prefix for the shared image name. Example: `"myimage"`.
 The full name will contain the prefix with a random suffix.
 
 ### `base.azure.imageDefinitionName` / `variant.<name>.azure.imageDefinitionName`
