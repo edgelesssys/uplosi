@@ -19,6 +19,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	armcomputev5 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/pageblob"
 	"github.com/edgelesssys/uplosi/config"
@@ -37,6 +38,7 @@ type Uploader struct {
 	pollingFrequency time.Duration
 	pollOpts         *runtime.PollUntilDoneOptions
 
+	groups            azureGroupsAPI
 	disks             azureDiskAPI
 	managedImages     azureManagedImageAPI
 	blob              sasBlobUploader
@@ -54,6 +56,10 @@ func NewUploader(config config.Config, log *log.Logger) (*Uploader, error) {
 	subscriptionID := config.Azure.SubscriptionID
 
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		return nil, err
+	}
+	groupsClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +96,7 @@ func NewUploader(config config.Config, log *log.Logger) (*Uploader, error) {
 		config:           config,
 		pollingFrequency: pollingFrequency,
 		pollOpts:         &runtime.PollUntilDoneOptions{Frequency: pollingFrequency},
+		groups:           groupsClient,
 		disks:            diskClient,
 		managedImages:    managedImagesClient,
 		blob: func(sasBlobURL string) (azurePageblobAPI, error) {
@@ -117,8 +124,11 @@ func (u *Uploader) Upload(ctx context.Context, image io.ReadSeeker, size int64) 
 		return nil, fmt.Errorf("pre-cleaning: ensuring no temporary disk using the same name exists: %w", err)
 	}
 
-	// Ensure SIG and image definition exist.
+	// Ensure resource group, SIG and image definition exist.
 	// These aren't cleaned up as they are shared between images.
+	if err := u.ensureResourceGroup(ctx); err != nil {
+		return nil, fmt.Errorf("ensuring resource group exists: %w", err)
+	}
 	if err := u.ensureSIG(ctx); err != nil {
 		return nil, fmt.Errorf("ensuring sig exists: %w", err)
 	}
@@ -333,6 +343,42 @@ func (u *Uploader) ensureManagedImageDeleted(ctx context.Context) error {
 	return nil
 }
 
+func (u *Uploader) ensureResourceGroup(ctx context.Context) error {
+	rg := u.config.Azure.ResourceGroup
+	location := u.config.Azure.Location
+
+	// Check if resource group exists.
+	resp, err := u.groups.CheckExistence(ctx, rg, &armresources.ResourceGroupsClientCheckExistenceOptions{})
+	if err != nil {
+		return fmt.Errorf("checking existence of resource group %s: %w", rg, err)
+	}
+
+	if resp.Success {
+		// Check resource group location matches.
+		group, err := u.groups.Get(ctx, rg, &armresources.ResourceGroupsClientGetOptions{})
+		if err != nil {
+			return fmt.Errorf("getting resource group %s: %w", rg, err)
+		}
+		if group.Location == nil {
+			return fmt.Errorf("resource group %s exists but has no location", rg)
+		}
+		if !strings.EqualFold(*group.Location, location) {
+			return fmt.Errorf("resource group %s exists but isn't in the expected location %s but in %s", rg, location, *group.Location)
+		}
+
+		u.log.Printf("Resource group %s in %s exists", rg, location)
+		return nil
+	}
+
+	u.log.Printf("Creating resource group %s in %s", rg, location)
+	group := armresources.ResourceGroup{Location: &location}
+	if _, err := u.groups.CreateOrUpdate(ctx, rg, group, &armresources.ResourceGroupsClientCreateOrUpdateOptions{}); err != nil {
+		return fmt.Errorf("creating resource group %s: %w", rg, err)
+	}
+
+	return nil
+}
+
 // ensureSIG creates a SIG if it does not exist yet.
 func (u *Uploader) ensureSIG(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
@@ -372,7 +418,7 @@ func (u *Uploader) ensureSIG(ctx context.Context) error {
 		Properties: &armcomputev5.GalleryProperties{
 			SharingProfile: &armcomputev5.SharingProfile{
 				CommunityGalleryInfo: communityGalleryInfo,
-				Permissions: sharingProf,
+				Permissions:          sharingProf,
 			},
 		},
 	}
@@ -500,7 +546,7 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 				},
 				AdditionalSignatures: &armcomputev5.UefiKeySignatures{
 					Db: []*armcomputev5.UefiKey{
-						&armcomputev5.UefiKey{
+						{
 							Type:  toPtr(armcomputev5.UefiKeyTypeX509),
 							Value: value,
 						},
