@@ -12,11 +12,24 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	armcomputev5 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/pageblob"
 )
 
 type sasBlobUploader func(sasBlobURL string) (azurePageblobAPI, error)
+
+type azureGroupsAPI interface {
+	CheckExistence(ctx context.Context, resourceGroupName string,
+		options *armresources.ResourceGroupsClientCheckExistenceOptions,
+	) (armresources.ResourceGroupsClientCheckExistenceResponse, error)
+	Get(ctx context.Context, resourceGroupName string,
+		options *armresources.ResourceGroupsClientGetOptions,
+	) (armresources.ResourceGroupsClientGetResponse, error)
+	CreateOrUpdate(ctx context.Context, resourceGroupName string, parameters armresources.ResourceGroup,
+		options *armresources.ResourceGroupsClientCreateOrUpdateOptions,
+	) (armresources.ResourceGroupsClientCreateOrUpdateResponse, error)
+}
 
 type azureDiskAPI interface {
 	Get(ctx context.Context, resourceGroupName string, diskName string,
