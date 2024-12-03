@@ -18,7 +18,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	armcomputev5 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
+	armcomputev6 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/pageblob"
@@ -63,31 +63,31 @@ func NewUploader(config config.Config, log *log.Logger) (*Uploader, error) {
 	if err != nil {
 		return nil, err
 	}
-	diskClient, err := armcomputev5.NewDisksClient(subscriptionID, cred, nil)
+	diskClient, err := armcomputev6.NewDisksClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
-	managedImagesClient, err := armcomputev5.NewImagesClient(subscriptionID, cred, nil)
+	managedImagesClient, err := armcomputev6.NewImagesClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
-	galleriesClient, err := armcomputev5.NewGalleriesClient(subscriptionID, cred, nil)
+	galleriesClient, err := armcomputev6.NewGalleriesClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
-	galleriesImageClient, err := armcomputev5.NewGalleryImagesClient(subscriptionID, cred, nil)
+	galleriesImageClient, err := armcomputev6.NewGalleryImagesClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
-	galleriesImageVersionClient, err := armcomputev5.NewGalleryImageVersionsClient(subscriptionID, cred, nil)
+	galleriesImageVersionClient, err := armcomputev6.NewGalleryImageVersionsClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
-	communityImageVersionClient, err := armcomputev5.NewCommunityGalleryImageVersionsClient(subscriptionID, cred, nil)
+	communityImageVersionClient, err := armcomputev6.NewCommunityGalleryImageVersionsClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
-	gallerySharingClient, err := armcomputev5.NewGallerySharingProfileClient(subscriptionID, cred, nil)
+	gallerySharingClient, err := armcomputev6.NewGallerySharingProfileClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -174,28 +174,28 @@ func (u *Uploader) createDisk(ctx context.Context, diskType DiskType, img io.Rea
 	if diskType == DiskTypeWithVMGS && vmgs == nil {
 		return "", errors.New("cannot create disk with vmgs: vmgs reader is nil")
 	}
-	var createOption armcomputev5.DiskCreateOption
+	var createOption armcomputev6.DiskCreateOption
 	var requestVMGSSAS bool
 	switch diskType {
 	case DiskTypeNormal:
-		createOption = armcomputev5.DiskCreateOptionUpload
+		createOption = armcomputev6.DiskCreateOptionUpload
 	case DiskTypeWithVMGS:
-		createOption = armcomputev5.DiskCreateOptionUploadPreparedSecure
+		createOption = armcomputev6.DiskCreateOptionUploadPreparedSecure
 		requestVMGSSAS = true
 	}
 
-	disk := armcomputev5.Disk{
+	disk := armcomputev6.Disk{
 		Location: &u.config.Azure.Location,
-		Properties: &armcomputev5.DiskProperties{
-			CreationData: &armcomputev5.CreationData{
+		Properties: &armcomputev6.DiskProperties{
+			CreationData: &armcomputev6.CreationData{
 				CreateOption:    &createOption,
 				UploadSizeBytes: toPtr(size),
 			},
-			HyperVGeneration: toPtr(armcomputev5.HyperVGenerationV2),
-			OSType:           toPtr(armcomputev5.OperatingSystemTypesLinux),
+			HyperVGeneration: toPtr(armcomputev6.HyperVGenerationV2),
+			OSType:           toPtr(armcomputev6.OperatingSystemTypesLinux),
 		},
 	}
-	createPoller, err := u.disks.BeginCreateOrUpdate(ctx, rg, diskName, disk, &armcomputev5.DisksClientBeginCreateOrUpdateOptions{})
+	createPoller, err := u.disks.BeginCreateOrUpdate(ctx, rg, diskName, disk, &armcomputev6.DisksClientBeginCreateOrUpdateOptions{})
 	if err != nil {
 		return "", fmt.Errorf("creating disk: %w", err)
 	}
@@ -205,12 +205,12 @@ func (u *Uploader) createDisk(ctx context.Context, diskType DiskType, img io.Rea
 	}
 
 	u.log.Printf("Granting temporary upload permissions via SAS token")
-	accessGrant := armcomputev5.GrantAccessData{
-		Access:                   toPtr(armcomputev5.AccessLevelWrite),
+	accessGrant := armcomputev6.GrantAccessData{
+		Access:                   toPtr(armcomputev6.AccessLevelWrite),
 		DurationInSeconds:        toPtr(int32(uploadAccessDuration)),
 		GetSecureVMGuestStateSAS: &requestVMGSSAS,
 	}
-	accessPoller, err := u.disks.BeginGrantAccess(ctx, rg, diskName, accessGrant, &armcomputev5.DisksClientBeginGrantAccessOptions{})
+	accessPoller, err := u.disks.BeginGrantAccess(ctx, rg, diskName, accessGrant, &armcomputev6.DisksClientBeginGrantAccessOptions{})
 	if err != nil {
 		return "", fmt.Errorf("generating disk sas token: %w", err)
 	}
@@ -244,7 +244,7 @@ func (u *Uploader) createDisk(ctx context.Context, diskType DiskType, img io.Rea
 		return "", fmt.Errorf("uploading image: %w", err)
 	}
 
-	revokePoller, err := u.disks.BeginRevokeAccess(ctx, rg, diskName, &armcomputev5.DisksClientBeginRevokeAccessOptions{})
+	revokePoller, err := u.disks.BeginRevokeAccess(ctx, rg, diskName, &armcomputev6.DisksClientBeginRevokeAccessOptions{})
 	if err != nil {
 		return "", fmt.Errorf("revoking disk sas token: %w", err)
 	}
@@ -263,14 +263,14 @@ func (u *Uploader) ensureDiskDeleted(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
 	diskName := u.config.Azure.DiskName
 
-	getOpts := &armcomputev5.DisksClientGetOptions{}
+	getOpts := &armcomputev6.DisksClientGetOptions{}
 	if _, err := u.disks.Get(ctx, rg, diskName, getOpts); err != nil {
 		u.log.Printf("Disk %s in %s doesn't exist. Nothing to clean up.", diskName, rg)
 		return nil
 	}
 
 	u.log.Printf("Deleting disk %s in %s", diskName, rg)
-	deleteOpts := &armcomputev5.DisksClientBeginDeleteOptions{}
+	deleteOpts := &armcomputev6.DisksClientBeginDeleteOptions{}
 	deletePoller, err := u.disks.BeginDelete(ctx, rg, diskName, deleteOpts)
 	if err != nil {
 		return fmt.Errorf("deleting disk: %w", err)
@@ -288,22 +288,22 @@ func (u *Uploader) createManagedImage(ctx context.Context, diskID string) (strin
 	imgName := u.config.Azure.DiskName
 
 	u.log.Printf("Creating managed image %s in %s", imgName, rg)
-	image := armcomputev5.Image{
+	image := armcomputev6.Image{
 		Location: &location,
-		Properties: &armcomputev5.ImageProperties{
-			HyperVGeneration: toPtr(armcomputev5.HyperVGenerationTypesV2),
-			StorageProfile: &armcomputev5.ImageStorageProfile{
-				OSDisk: &armcomputev5.ImageOSDisk{
-					OSState: toPtr(armcomputev5.OperatingSystemStateTypesGeneralized),
-					OSType:  toPtr(armcomputev5.OperatingSystemTypesLinux),
-					ManagedDisk: &armcomputev5.SubResource{
+		Properties: &armcomputev6.ImageProperties{
+			HyperVGeneration: toPtr(armcomputev6.HyperVGenerationTypesV2),
+			StorageProfile: &armcomputev6.ImageStorageProfile{
+				OSDisk: &armcomputev6.ImageOSDisk{
+					OSState: toPtr(armcomputev6.OperatingSystemStateTypesGeneralized),
+					OSType:  toPtr(armcomputev6.OperatingSystemTypesLinux),
+					ManagedDisk: &armcomputev6.SubResource{
 						ID: &diskID,
 					},
 				},
 			},
 		},
 	}
-	opts := &armcomputev5.ImagesClientBeginCreateOrUpdateOptions{}
+	opts := &armcomputev6.ImagesClientBeginCreateOrUpdateOptions{}
 	createPoller, err := u.managedImages.BeginCreateOrUpdate(ctx, rg, imgName, image, opts)
 	if err != nil {
 		return "", fmt.Errorf("creating managed image: %w", err)
@@ -324,14 +324,14 @@ func (u *Uploader) ensureManagedImageDeleted(ctx context.Context) error {
 	rg := u.config.Azure.ResourceGroup
 	imgName := u.config.Azure.DiskName
 
-	getOpts := &armcomputev5.ImagesClientGetOptions{}
+	getOpts := &armcomputev6.ImagesClientGetOptions{}
 	if _, err := u.managedImages.Get(ctx, rg, imgName, getOpts); err != nil {
 		u.log.Printf("Managed image %s in %s doesn't exist. Nothing to clean up.", imgName, rg)
 		return nil
 	}
 
 	u.log.Printf("Deleting managed image %s in %s", imgName, rg)
-	deleteOpts := &armcomputev5.ImagesClientBeginDeleteOptions{}
+	deleteOpts := &armcomputev6.ImagesClientBeginDeleteOptions{}
 	deletePoller, err := u.managedImages.BeginDelete(ctx, rg, imgName, deleteOpts)
 	if err != nil {
 		return fmt.Errorf("deleting image: %w", err)
@@ -386,7 +386,7 @@ func (u *Uploader) ensureSIG(ctx context.Context) error {
 	pubNamePrefix := u.config.Azure.SharingNamePrefix
 	sharingProf := sharingProfilePermissionFromString(u.config.Azure.SharingProfile)
 
-	resp, err := u.galleries.Get(ctx, rg, sigName, &armcomputev5.GalleriesClientGetOptions{})
+	resp, err := u.galleries.Get(ctx, rg, sigName, &armcomputev6.GalleriesClientGetOptions{})
 	if err == nil {
 		u.log.Printf("Image gallery %s in %s exists", sigName, rg)
 		if resp.Gallery.Properties == nil {
@@ -404,25 +404,25 @@ func (u *Uploader) ensureSIG(ctx context.Context) error {
 		return nil
 	}
 	u.log.Printf("Creating image gallery %s in %s", sigName, rg)
-	var communityGalleryInfo *armcomputev5.CommunityGalleryInfo
+	var communityGalleryInfo *armcomputev6.CommunityGalleryInfo
 	if u.config.Azure.SharingProfile == "community" {
-		communityGalleryInfo = &armcomputev5.CommunityGalleryInfo{
+		communityGalleryInfo = &armcomputev6.CommunityGalleryInfo{
 			PublicNamePrefix: &pubNamePrefix,
 			Eula:             toPtr("none"),
 			PublisherContact: toPtr("test@foo.bar"),
 			PublisherURI:     toPtr("https://foo.bar"),
 		}
 	}
-	gallery := armcomputev5.Gallery{
+	gallery := armcomputev6.Gallery{
 		Location: &u.config.Azure.Location,
-		Properties: &armcomputev5.GalleryProperties{
-			SharingProfile: &armcomputev5.SharingProfile{
+		Properties: &armcomputev6.GalleryProperties{
+			SharingProfile: &armcomputev6.SharingProfile{
 				CommunityGalleryInfo: communityGalleryInfo,
 				Permissions:          sharingProf,
 			},
 		},
 	}
-	opts := &armcomputev5.GalleriesClientBeginCreateOrUpdateOptions{}
+	opts := &armcomputev6.GalleriesClientBeginCreateOrUpdateOptions{}
 	createPoller, err := u.galleries.BeginCreateOrUpdate(ctx, rg, sigName, gallery, opts)
 	if err != nil {
 		return fmt.Errorf("creating image gallery: %w", err)
@@ -432,8 +432,8 @@ func (u *Uploader) ensureSIG(ctx context.Context) error {
 	}
 
 	if u.config.Azure.SharingProfile == "community" {
-		sharingUpdate := armcomputev5.SharingUpdate{
-			OperationType: toPtr(armcomputev5.SharingUpdateOperationTypesEnableCommunity),
+		sharingUpdate := armcomputev6.SharingUpdate{
+			OperationType: toPtr(armcomputev6.SharingUpdateOperationTypesEnableCommunity),
 		}
 		if _, err := u.gallerySharing.BeginUpdate(ctx, rg, sigName, sharingUpdate, nil); err != nil {
 			return fmt.Errorf("enabling community sharing: %w", err)
@@ -443,14 +443,14 @@ func (u *Uploader) ensureSIG(ctx context.Context) error {
 	return nil
 }
 
-func sharingProfilePermissionFromString(s string) *armcomputev5.GallerySharingPermissionTypes {
+func sharingProfilePermissionFromString(s string) *armcomputev6.GallerySharingPermissionTypes {
 	switch strings.ToLower(s) {
 	case "community":
-		return toPtr(armcomputev5.GallerySharingPermissionTypesCommunity)
+		return toPtr(armcomputev6.GallerySharingPermissionTypesCommunity)
 	// case "groups":
 	// 	return armcomputev5.GallerySharingPermissionTypesGroups
 	default:
-		return toPtr(armcomputev5.GallerySharingPermissionTypesPrivate)
+		return toPtr(armcomputev6.GallerySharingPermissionTypesPrivate)
 	}
 }
 
@@ -461,7 +461,7 @@ func (u *Uploader) ensureImageDefinition(ctx context.Context) error {
 	attestVariant := u.config.Azure.AttestationVariant
 	defName := u.config.Azure.ImageDefinitionName
 
-	_, err := u.image.Get(ctx, rg, sigName, defName, &armcomputev5.GalleryImagesClientGetOptions{})
+	_, err := u.image.Get(ctx, rg, sigName, defName, &armcomputev6.GalleryImagesClientGetOptions{})
 	if err == nil {
 		u.log.Printf("Image definition %s/%s in %s exists", sigName, defName, rg)
 		return nil
@@ -476,27 +476,27 @@ func (u *Uploader) ensureImageDefinition(ctx context.Context) error {
 	case "azure-sev-snp", "azure-tdx":
 		securityType = string("ConfidentialVMSupported")
 	case "azure-trustedlaunch":
-		securityType = string(armcomputev5.SecurityTypesTrustedLaunch)
+		securityType = string(armcomputev6.SecurityTypesTrustedLaunch)
 	}
 
-	galleryImage := armcomputev5.GalleryImage{
+	galleryImage := armcomputev6.GalleryImage{
 		Location: &u.config.Azure.Location,
-		Properties: &armcomputev5.GalleryImageProperties{
-			Identifier: &armcomputev5.GalleryImageIdentifier{
+		Properties: &armcomputev6.GalleryImageProperties{
+			Identifier: &armcomputev6.GalleryImageIdentifier{
 				Offer:     &u.config.Azure.Offer,
 				Publisher: &u.config.Azure.Publisher,
 				SKU:       &u.config.Azure.SKU,
 			},
-			OSState:      toPtr(armcomputev5.OperatingSystemStateTypesGeneralized),
-			OSType:       toPtr(armcomputev5.OperatingSystemTypesLinux),
-			Architecture: toPtr(armcomputev5.ArchitectureX64),
-			Features: []*armcomputev5.GalleryImageFeature{
+			OSState:      toPtr(armcomputev6.OperatingSystemStateTypesGeneralized),
+			OSType:       toPtr(armcomputev6.OperatingSystemTypesLinux),
+			Architecture: toPtr(armcomputev6.ArchitectureX64),
+			Features: []*armcomputev6.GalleryImageFeature{
 				{Name: toPtr("SecurityType"), Value: &securityType},
 			},
-			HyperVGeneration: toPtr(armcomputev5.HyperVGenerationV2),
+			HyperVGeneration: toPtr(armcomputev6.HyperVGenerationV2),
 		},
 	}
-	opts := &armcomputev5.GalleryImagesClientBeginCreateOrUpdateOptions{}
+	opts := &armcomputev6.GalleryImagesClientBeginCreateOrUpdateOptions{}
 	createPoller, err := u.image.BeginCreateOrUpdate(ctx, rg, sigName, defName, galleryImage, opts)
 	if err != nil {
 		return fmt.Errorf("creating image definition: %w", err)
@@ -515,20 +515,20 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 	defName := u.config.Azure.ImageDefinitionName
 
 	u.log.Printf("Creating image version %s/%s/%s in %s", sigName, defName, verName, rg)
-	imageVersion := armcomputev5.GalleryImageVersion{
+	imageVersion := armcomputev6.GalleryImageVersion{
 		Location: &u.config.Azure.Location,
-		Properties: &armcomputev5.GalleryImageVersionProperties{
-			StorageProfile: &armcomputev5.GalleryImageVersionStorageProfile{
-				OSDiskImage: &armcomputev5.GalleryOSDiskImage{
-					HostCaching: toPtr(armcomputev5.HostCachingReadOnly),
+		Properties: &armcomputev6.GalleryImageVersionProperties{
+			StorageProfile: &armcomputev6.GalleryImageVersionStorageProfile{
+				OSDiskImage: &armcomputev6.GalleryOSDiskImage{
+					HostCaching: toPtr(armcomputev6.HostCachingReadOnly),
 				},
-				Source: &armcomputev5.GalleryArtifactVersionFullSource{
+				Source: &armcomputev6.GalleryArtifactVersionFullSource{
 					ID: &imageID,
 				},
 			},
-			PublishingProfile: &armcomputev5.GalleryImageVersionPublishingProfile{
+			PublishingProfile: &armcomputev6.GalleryImageVersionPublishingProfile{
 				ReplicaCount:    toPtr[int32](1),
-				ReplicationMode: toPtr(armcomputev5.ReplicationModeFull),
+				ReplicationMode: toPtr(armcomputev6.ReplicationModeFull),
 				TargetRegions:   replication(u.config.Azure.Location, u.config.Azure.ReplicationRegions, 1),
 			},
 		},
@@ -539,15 +539,15 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 		for _, sig := range u.config.Azure.AdditionalSignatures {
 			value = append(value, toPtr(sig))
 		}
-		imageVersion.Properties.SecurityProfile = &armcomputev5.ImageVersionSecurityProfile{
-			UefiSettings: &armcomputev5.GalleryImageVersionUefiSettings{
-				SignatureTemplateNames: []*armcomputev5.UefiSignatureTemplateName{
-					toPtr(armcomputev5.UefiSignatureTemplateNameMicrosoftUefiCertificateAuthorityTemplate),
+		imageVersion.Properties.SecurityProfile = &armcomputev6.ImageVersionSecurityProfile{
+			UefiSettings: &armcomputev6.GalleryImageVersionUefiSettings{
+				SignatureTemplateNames: []*armcomputev6.UefiSignatureTemplateName{
+					toPtr(armcomputev6.UefiSignatureTemplateNameMicrosoftUefiCertificateAuthorityTemplate),
 				},
-				AdditionalSignatures: &armcomputev5.UefiKeySignatures{
-					Db: []*armcomputev5.UefiKey{
+				AdditionalSignatures: &armcomputev6.UefiKeySignatures{
+					Db: []*armcomputev6.UefiKey{
 						{
-							Type:  toPtr(armcomputev5.UefiKeyTypeX509),
+							Type:  toPtr(armcomputev6.UefiKeyTypeX509),
 							Value: value,
 						},
 					},
@@ -557,7 +557,7 @@ func (u *Uploader) createImageVersion(ctx context.Context, imageID string) (stri
 	}
 
 	createPoller, err := u.imageVersions.BeginCreateOrUpdate(ctx, rg, sigName, defName, verName, imageVersion,
-		&armcomputev5.GalleryImageVersionsClientBeginCreateOrUpdateOptions{},
+		&armcomputev6.GalleryImageVersionsClientBeginCreateOrUpdateOptions{},
 	)
 	if err != nil {
 		return "", fmt.Errorf("creating image version: %w", err)
@@ -578,14 +578,14 @@ func (u *Uploader) ensureImageVersionDeleted(ctx context.Context) error {
 	verName := u.config.ImageVersion
 	defName := u.config.Azure.ImageDefinitionName
 
-	getOpts := &armcomputev5.GalleryImageVersionsClientGetOptions{}
+	getOpts := &armcomputev6.GalleryImageVersionsClientGetOptions{}
 	if _, err := u.imageVersions.Get(ctx, rg, sigName, defName, verName, getOpts); err != nil {
 		u.log.Printf("Image version %s in %s/%s/%s doesn't exist. Nothing to clean up.", verName, rg, sigName, defName)
 		return nil
 	}
 
 	u.log.Printf("Deleting image version %s in %s/%s/%s", verName, rg, sigName, defName)
-	deleteOpts := &armcomputev5.GalleryImageVersionsClientBeginDeleteOptions{}
+	deleteOpts := &armcomputev6.GalleryImageVersionsClientBeginDeleteOptions{}
 	deletePoller, err := u.imageVersions.BeginDelete(ctx, rg, sigName, defName, verName, deleteOpts)
 	if err != nil {
 		return fmt.Errorf("deleting image version: %w", err)
@@ -607,7 +607,7 @@ func (u *Uploader) getImageReference(ctx context.Context, unsharedID string) (st
 	verName := u.config.ImageVersion
 	defName := u.config.Azure.ImageDefinitionName
 
-	galleryResp, err := u.galleries.Get(ctx, rg, sigName, &armcomputev5.GalleriesClientGetOptions{})
+	galleryResp, err := u.galleries.Get(ctx, rg, sigName, &armcomputev6.GalleriesClientGetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("getting image gallery %s: %w", sigName, err)
 	}
@@ -629,7 +629,7 @@ func (u *Uploader) getImageReference(ctx context.Context, unsharedID string) (st
 	}
 	communityGalleryName := *galleryResp.Properties.SharingProfile.CommunityGalleryInfo.PublicNames[0]
 	u.log.Printf("Image gallery %s in %s is shared. Using community identifier in %s", sigName, rg, communityGalleryName)
-	opts := &armcomputev5.CommunityGalleryImageVersionsClientGetOptions{}
+	opts := &armcomputev6.CommunityGalleryImageVersionsClientGetOptions{}
 	communityVersionResp, err := u.communityVersions.Get(ctx, location, communityGalleryName, defName, verName, opts)
 	if err != nil {
 		return "", fmt.Errorf("getting community image version %s/%s/%s: %w", communityGalleryName, defName, verName, err)
@@ -682,8 +682,8 @@ func toPtr[T any](t T) *T {
 	return &t
 }
 
-func replication(location string, regions []string, count int32) []*armcomputev5.TargetRegion {
-	targetRegions := []*armcomputev5.TargetRegion{
+func replication(location string, regions []string, count int32) []*armcomputev6.TargetRegion {
+	targetRegions := []*armcomputev6.TargetRegion{
 		{
 			Name:                 toPtr(location),
 			RegionalReplicaCount: toPtr[int32](count),
@@ -693,7 +693,7 @@ func replication(location string, regions []string, count int32) []*armcomputev5
 		if region == location {
 			continue
 		}
-		targetRegions = append(targetRegions, &armcomputev5.TargetRegion{
+		targetRegions = append(targetRegions, &armcomputev6.TargetRegion{
 			Name:                 toPtr(region),
 			RegionalReplicaCount: toPtr[int32](count),
 		})
