@@ -11,7 +11,7 @@ import (
 	"io"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
-	armcomputev5 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6"
+	armcomputev6 "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/pageblob"
@@ -33,33 +33,33 @@ type azureGroupsAPI interface {
 
 type azureDiskAPI interface {
 	Get(ctx context.Context, resourceGroupName string, diskName string,
-		options *armcomputev5.DisksClientGetOptions,
-	) (armcomputev5.DisksClientGetResponse, error)
-	BeginCreateOrUpdate(ctx context.Context, resourceGroupName string, diskName string, disk armcomputev5.Disk,
-		options *armcomputev5.DisksClientBeginCreateOrUpdateOptions,
-	) (*runtime.Poller[armcomputev5.DisksClientCreateOrUpdateResponse], error)
+		options *armcomputev6.DisksClientGetOptions,
+	) (armcomputev6.DisksClientGetResponse, error)
+	BeginCreateOrUpdate(ctx context.Context, resourceGroupName string, diskName string, disk armcomputev6.Disk,
+		options *armcomputev6.DisksClientBeginCreateOrUpdateOptions,
+	) (*runtime.Poller[armcomputev6.DisksClientCreateOrUpdateResponse], error)
 	BeginDelete(ctx context.Context, resourceGroupName string, diskName string,
-		options *armcomputev5.DisksClientBeginDeleteOptions,
-	) (*runtime.Poller[armcomputev5.DisksClientDeleteResponse], error)
-	BeginGrantAccess(ctx context.Context, resourceGroupName string, diskName string, grantAccessData armcomputev5.GrantAccessData,
-		options *armcomputev5.DisksClientBeginGrantAccessOptions,
-	) (*runtime.Poller[armcomputev5.DisksClientGrantAccessResponse], error)
+		options *armcomputev6.DisksClientBeginDeleteOptions,
+	) (*runtime.Poller[armcomputev6.DisksClientDeleteResponse], error)
+	BeginGrantAccess(ctx context.Context, resourceGroupName string, diskName string, grantAccessData armcomputev6.GrantAccessData,
+		options *armcomputev6.DisksClientBeginGrantAccessOptions,
+	) (*runtime.Poller[armcomputev6.DisksClientGrantAccessResponse], error)
 	BeginRevokeAccess(ctx context.Context, resourceGroupName string, diskName string,
-		options *armcomputev5.DisksClientBeginRevokeAccessOptions,
-	) (*runtime.Poller[armcomputev5.DisksClientRevokeAccessResponse], error)
+		options *armcomputev6.DisksClientBeginRevokeAccessOptions,
+	) (*runtime.Poller[armcomputev6.DisksClientRevokeAccessResponse], error)
 }
 
 type azureManagedImageAPI interface {
 	Get(ctx context.Context, resourceGroupName string, imageName string,
-		options *armcomputev5.ImagesClientGetOptions,
-	) (armcomputev5.ImagesClientGetResponse, error)
+		options *armcomputev6.ImagesClientGetOptions,
+	) (armcomputev6.ImagesClientGetResponse, error)
 	BeginCreateOrUpdate(ctx context.Context, resourceGroupName string,
-		imageName string, parameters armcomputev5.Image,
-		options *armcomputev5.ImagesClientBeginCreateOrUpdateOptions,
-	) (*runtime.Poller[armcomputev5.ImagesClientCreateOrUpdateResponse], error)
+		imageName string, parameters armcomputev6.Image,
+		options *armcomputev6.ImagesClientBeginCreateOrUpdateOptions,
+	) (*runtime.Poller[armcomputev6.ImagesClientCreateOrUpdateResponse], error)
 	BeginDelete(ctx context.Context, resourceGroupName string, imageName string,
-		options *armcomputev5.ImagesClientBeginDeleteOptions,
-	) (*runtime.Poller[armcomputev5.ImagesClientDeleteResponse], error)
+		options *armcomputev6.ImagesClientBeginDeleteOptions,
+	) (*runtime.Poller[armcomputev6.ImagesClientDeleteResponse], error)
 }
 
 type azurePageblobAPI interface {
@@ -70,54 +70,54 @@ type azurePageblobAPI interface {
 
 type azureGalleriesAPI interface {
 	Get(ctx context.Context, resourceGroupName string, galleryName string,
-		options *armcomputev5.GalleriesClientGetOptions,
-	) (armcomputev5.GalleriesClientGetResponse, error)
-	NewListPager(options *armcomputev5.GalleriesClientListOptions,
-	) *runtime.Pager[armcomputev5.GalleriesClientListResponse]
+		options *armcomputev6.GalleriesClientGetOptions,
+	) (armcomputev6.GalleriesClientGetResponse, error)
+	NewListPager(options *armcomputev6.GalleriesClientListOptions,
+	) *runtime.Pager[armcomputev6.GalleriesClientListResponse]
 	BeginCreateOrUpdate(ctx context.Context, resourceGroupName string,
-		galleryName string, gallery armcomputev5.Gallery,
-		options *armcomputev5.GalleriesClientBeginCreateOrUpdateOptions,
-	) (*runtime.Poller[armcomputev5.GalleriesClientCreateOrUpdateResponse], error)
+		galleryName string, gallery armcomputev6.Gallery,
+		options *armcomputev6.GalleriesClientBeginCreateOrUpdateOptions,
+	) (*runtime.Poller[armcomputev6.GalleriesClientCreateOrUpdateResponse], error)
 }
 
 type azureGalleriesImageAPI interface {
 	Get(ctx context.Context, resourceGroupName string, galleryName string,
-		galleryImageName string, options *armcomputev5.GalleryImagesClientGetOptions,
-	) (armcomputev5.GalleryImagesClientGetResponse, error)
+		galleryImageName string, options *armcomputev6.GalleryImagesClientGetOptions,
+	) (armcomputev6.GalleryImagesClientGetResponse, error)
 	BeginCreateOrUpdate(ctx context.Context, resourceGroupName string, galleryName string,
-		galleryImageName string, galleryImage armcomputev5.GalleryImage,
-		options *armcomputev5.GalleryImagesClientBeginCreateOrUpdateOptions,
-	) (*runtime.Poller[armcomputev5.GalleryImagesClientCreateOrUpdateResponse], error)
+		galleryImageName string, galleryImage armcomputev6.GalleryImage,
+		options *armcomputev6.GalleryImagesClientBeginCreateOrUpdateOptions,
+	) (*runtime.Poller[armcomputev6.GalleryImagesClientCreateOrUpdateResponse], error)
 	BeginDelete(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string,
-		options *armcomputev5.GalleryImagesClientBeginDeleteOptions,
-	) (*runtime.Poller[armcomputev5.GalleryImagesClientDeleteResponse], error)
+		options *armcomputev6.GalleryImagesClientBeginDeleteOptions,
+	) (*runtime.Poller[armcomputev6.GalleryImagesClientDeleteResponse], error)
 }
 
 type azureGalleriesImageVersionAPI interface {
 	Get(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImageVersionName string,
-		options *armcomputev5.GalleryImageVersionsClientGetOptions,
-	) (armcomputev5.GalleryImageVersionsClientGetResponse, error)
+		options *armcomputev6.GalleryImageVersionsClientGetOptions,
+	) (armcomputev6.GalleryImageVersionsClientGetResponse, error)
 	NewListByGalleryImagePager(resourceGroupName string, galleryName string, galleryImageName string,
-		options *armcomputev5.GalleryImageVersionsClientListByGalleryImageOptions,
-	) *runtime.Pager[armcomputev5.GalleryImageVersionsClientListByGalleryImageResponse]
+		options *armcomputev6.GalleryImageVersionsClientListByGalleryImageOptions,
+	) *runtime.Pager[armcomputev6.GalleryImageVersionsClientListByGalleryImageResponse]
 	BeginCreateOrUpdate(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string,
-		galleryImageVersionName string, galleryImageVersion armcomputev5.GalleryImageVersion,
-		options *armcomputev5.GalleryImageVersionsClientBeginCreateOrUpdateOptions,
-	) (*runtime.Poller[armcomputev5.GalleryImageVersionsClientCreateOrUpdateResponse], error)
+		galleryImageVersionName string, galleryImageVersion armcomputev6.GalleryImageVersion,
+		options *armcomputev6.GalleryImageVersionsClientBeginCreateOrUpdateOptions,
+	) (*runtime.Poller[armcomputev6.GalleryImageVersionsClientCreateOrUpdateResponse], error)
 	BeginDelete(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string,
-		galleryImageVersionName string, options *armcomputev5.GalleryImageVersionsClientBeginDeleteOptions,
-	) (*runtime.Poller[armcomputev5.GalleryImageVersionsClientDeleteResponse], error)
+		galleryImageVersionName string, options *armcomputev6.GalleryImageVersionsClientBeginDeleteOptions,
+	) (*runtime.Poller[armcomputev6.GalleryImageVersionsClientDeleteResponse], error)
 }
 
 type azureCommunityGalleryImageVersionAPI interface {
 	Get(ctx context.Context, location string,
 		publicGalleryName, galleryImageName, galleryImageVersionName string,
-		options *armcomputev5.CommunityGalleryImageVersionsClientGetOptions,
-	) (armcomputev5.CommunityGalleryImageVersionsClientGetResponse, error)
+		options *armcomputev6.CommunityGalleryImageVersionsClientGetOptions,
+	) (armcomputev6.CommunityGalleryImageVersionsClientGetResponse, error)
 }
 
 type azureGallerySharingProfileAPI interface {
 	BeginUpdate(ctx context.Context, resourceGroupName string, galleryName string,
-		sharingUpdate armcomputev5.SharingUpdate, options *armcomputev5.GallerySharingProfileClientBeginUpdateOptions,
-	) (*runtime.Poller[armcomputev5.GallerySharingProfileClientUpdateResponse], error)
+		sharingUpdate armcomputev6.SharingUpdate, options *armcomputev6.GallerySharingProfileClientBeginUpdateOptions,
+	) (*runtime.Poller[armcomputev6.GallerySharingProfileClientUpdateResponse], error)
 }
