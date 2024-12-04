@@ -32,7 +32,7 @@ var defaultConfig = Config{
 	},
 	Azure: AzureConfig{
 		AttestationVariant:  "azure-sev-snp",
-		SharingProfile:      "community",
+		SharingProfile:      "private",
 		ImageDefinitionName: "{{.Name}}",
 		DiskName:            "{{.Name}}-{{.Version}}",
 		Offer:               "Linux",
