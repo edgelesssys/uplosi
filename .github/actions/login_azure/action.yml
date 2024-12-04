@@ -1,0 +1,15 @@
+name: Azure login
+description: "Login to Azure & configure az CLI."
+inputs:
+  azure_credentials:
+    description: "Credentials authorized to create Constellation on Azure."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    # As described at:
+    # https://github.com/Azure/login#configure-deployment-credentials
+    - name: Login to Azure
+      uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2.2.0
+      with:
+        creds: ${{ inputs.azure_credentials }}
