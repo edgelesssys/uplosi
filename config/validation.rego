@@ -196,7 +196,7 @@ deny[msg] {
 deny[msg] {
     input.Provider == "azure"
     input.Azure.SharingProfile != ""
-    allowed := ["community", "groups", "private"]
+    allowed := ["community", "private"]
     not input.Azure.SharingProfile in allowed
 
     msg = sprintf("sharing profile %q must be one of %s for provider azure", [input.Azure.SharingProfile, allowed])
