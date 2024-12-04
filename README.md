@@ -275,13 +275,13 @@ Will be created if it does not exist.
 - Required: no
 - Template: yes
 
-Sharing profile to use for the gallery image. One of `community`, `groups`, `private`.
+Sharing profile to use for the gallery image. One of `community`, `private`. Sharing profile `groups` currently isn't supported.
 Community images are publicly available, group images are available to a specific group of users, private images are only available to the owner.
 
 ### `base.azure.sharingNamePrefix` / `variant.<name>.azure.sharingNamePrefix`
 
 - Default: none
-- Required: if `sharingProfile` is `community` or `groups`
+- Required: if `sharingProfile` is `community`
 - Template: yes
 
 Prefix for the shared image name. Example: `"myimage"`.
