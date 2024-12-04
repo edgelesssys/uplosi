@@ -60,7 +60,7 @@ func TestConfigSetDefaults(t *testing.T) {
 	assert.Empty(config.Name)
 	assert.True(config.AWS.Publish.IsSome())
 	assert.False(config.AWS.Publish.Val)
-	assert.Equal("community", config.Azure.SharingProfile)
+	assert.Equal("private", config.Azure.SharingProfile)
 }
 
 func TestConfigMerge(t *testing.T) {
