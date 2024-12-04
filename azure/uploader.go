@@ -389,20 +389,36 @@ func (u *Uploader) ensureSIG(ctx context.Context) error {
 	resp, err := u.galleries.Get(ctx, rg, sigName, &armcomputev6.GalleriesClientGetOptions{})
 	if err == nil {
 		u.log.Printf("Image gallery %s in %s exists", sigName, rg)
-		if resp.Gallery.Properties == nil {
-			return errors.New("image gallery has no properties")
+		switch u.config.Azure.SharingProfile {
+		case "community":
+			if resp.Gallery.Properties == nil {
+				return errors.New("image gallery has no properties")
+			}
+			if resp.Gallery.Properties.SharingProfile == nil {
+				return errors.New("image gallery has no sharing profile")
+			}
+			if resp.Gallery.Properties.SharingProfile.Permissions == nil {
+				return errors.New("image gallery has no sharing profile permissions")
+			}
+			if *resp.Gallery.Properties.SharingProfile.Permissions != *sharingProf {
+				return errors.New("image gallery has different sharing profile permissions, cannot update automatically")
+			}
+			return nil
+		case "private":
+			if resp.Gallery.Properties == nil ||
+				resp.Gallery.Properties.SharingProfile == nil ||
+				resp.Gallery.Properties.SharingProfile.Permissions == nil {
+				return nil // no properties, sharing profile or permission means it's private
+			}
+			if *resp.Gallery.Properties.SharingProfile.Permissions != *sharingProf {
+				return errors.New("image gallery has different sharing profile permissions, cannot update automatically")
+			}
+			return nil
+		default:
+			return fmt.Errorf("image gallery has sharing profile %s, which is not supported. Cannot update automatically", u.config.Azure.SharingProfile)
 		}
-		if resp.Gallery.Properties.SharingProfile == nil {
-			return errors.New("image gallery has no sharing profile")
-		}
-		if resp.Gallery.Properties.SharingProfile.Permissions == nil {
-			return errors.New("image gallery has no sharing profile permissions")
-		}
-		if *resp.Gallery.Properties.SharingProfile.Permissions != *sharingProf {
-			return errors.New("image gallery has different sharing profile permissions, cannot update automatically")
-		}
-		return nil
 	}
+
 	u.log.Printf("Creating image gallery %s in %s", sigName, rg)
 	var communityGalleryInfo *armcomputev6.CommunityGalleryInfo
 	if u.config.Azure.SharingProfile == "community" {
