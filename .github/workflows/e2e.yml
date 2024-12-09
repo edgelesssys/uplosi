@@ -65,6 +65,7 @@ jobs:
         run: |
           echo "img=$(./hack/build_image.sh)" | tee -a "$GITHUB_OUTPUT"
       - name: Run e2e tests
+        working-directory: ./testdata
         env:
           variant: ${{ matrix.variant }}
           img: ${{ steps.build.outputs.img }}
