@@ -60,11 +60,16 @@ jobs:
           [variant.${variant}.azure]
           resourceGroup = "${resource_group}"
           EOF
+      - name: Build minimal image
+        id: build
+        run: |
+          echo "img=$(./hack/build_image.sh)" | tee -a "$GITHUB_OUTPUT"
       - name: Run e2e tests
         env:
           variant: ${{ matrix.variant }}
+          img: ${{ steps.build.outputs.img }}
         run: |
-          nix shell .# --command uplosi upload --enable-variant-glob ${variant} ${image}
+          nix shell .# --command uplosi upload --enable-variant-glob "${variant}" "${img}"
       - name: Delete resource group
         if: always()
         env:
