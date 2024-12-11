@@ -352,21 +352,8 @@ func (u *Uploader) ensureResourceGroup(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("checking existence of resource group %s: %w", rg, err)
 	}
-
 	if resp.Success {
-		// Check resource group location matches.
-		group, err := u.groups.Get(ctx, rg, &armresources.ResourceGroupsClientGetOptions{})
-		if err != nil {
-			return fmt.Errorf("getting resource group %s: %w", rg, err)
-		}
-		if group.Location == nil {
-			return fmt.Errorf("resource group %s exists but has no location", rg)
-		}
-		if !strings.EqualFold(*group.Location, location) {
-			return fmt.Errorf("resource group %s exists but isn't in the expected location %s but in %s", rg, location, *group.Location)
-		}
-
-		u.log.Printf("Resource group %s in %s exists", rg, location)
+		u.log.Printf("Resource group %s exists", rg)
 		return nil
 	}
 
