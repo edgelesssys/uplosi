@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -362,7 +363,7 @@ func (u *Uploader) ensureResourceGroup(ctx context.Context) error {
 		if group.Location == nil {
 			return fmt.Errorf("resource group %s exists but has no location", rg)
 		}
-		if !strings.EqualFold(*group.Location, location) {
+		if !strings.EqualFold(*group.Location, location) || os.Getenv("UPLOSI_LEGACY_DONT_CHECK_AZURE_LOCATION") != "" {
 			return fmt.Errorf("resource group %s exists but isn't in the expected location %s but in %s", rg, location, *group.Location)
 		}
 
