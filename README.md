@@ -267,7 +267,7 @@ Used to determine the security type of the image.
 - Template: yes
 
 Name of the shared image gallery to upload the image to. Example: `"my_gallery"`.
-Will be created if it does not exist.
+Will be created if it does not exist. The name must be unique within the subscription.
 
 ### `base.azure.sharingProfile` / `variant.<name>.azure.sharingProfile`
 
