@@ -8,6 +8,21 @@ on:
   pull_request:
 
 jobs:
+  flake-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: cachix/install-nix-action@08dcb3a5e62fa31e2da3d490afc4176ef55ecd72 # v30
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
+        with:
+          name: edgelesssys
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Run nix flake check
+        run: |
+          nix -L flake check
+
   golangci-lint:
     runs-on: ubuntu-latest
     steps:
@@ -47,40 +62,6 @@ jobs:
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
           govulncheck ./...
-
-  shellcheck:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
-        with:
-          severity: info
-
-  actionlint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Setup Go environment
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
-        with:
-          go-version: "stable"
-      - name: Install ShellCheck
-        env:
-          SHELLCHECK_VER: v0.9.0
-        run: |
-          baseurl=https://github.com/koalaman/shellcheck/releases/download
-          curl -fsSLO "${baseurl}/${SHELLCHECK_VER}/shellcheck-${SHELLCHECK_VER}.linux.x86_64.tar.xz"
-          tar -xf "shellcheck-${SHELLCHECK_VER}.linux.x86_64.tar.xz"
-          sudo mv "./shellcheck-${SHELLCHECK_VER}/shellcheck" "${{ github.action_path }}/shellcheck"
-          rm -rf "shellcheck-${SHELLCHECK_VER}" "shellcheck-${SHELLCHECK_VER}.linux.x86_64.tar.xz"
-      - name: Run Actionlint
-        shell: bash
-        run: |
-          go install github.com/rhysd/actionlint/cmd/actionlint@latest
-          actionlint
 
   vendorhash:
     runs-on: ubuntu-latest
