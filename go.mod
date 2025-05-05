@@ -20,7 +20,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.14.0
 	github.com/gophercloud/gophercloud v1.14.1
 	github.com/gophercloud/utils v0.0.0-20231010081019-80377eca5d56
-	github.com/open-policy-agent/opa v0.70.0
+	github.com/open-policy-agent/opa v1.4.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
