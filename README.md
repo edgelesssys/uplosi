@@ -271,7 +271,7 @@ Will be created if it does not exist. The name must be unique within the subscri
 
 ### `base.azure.sharingProfile` / `variant.<name>.azure.sharingProfile`
 
-- Default: `"community"`
+- Default: `"private"`
 - Required: no
 - Template: yes
 
