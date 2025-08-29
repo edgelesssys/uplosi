@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cavaliergopher/cpio"
 	"github.com/edgelesssys/uplosi/measured-boot/extract"
 	"github.com/edgelesssys/uplosi/measured-boot/measure"
 	"github.com/edgelesssys/uplosi/measured-boot/pesection"
@@ -147,8 +148,44 @@ func precalculatePCR9(simulator *measure.Simulator, fs afero.Fs, ukiFile string)
 		return fmt.Errorf("uki does not contain initrd: %v", err)
 	}
 
+	osrelSectionReader, err := extract.PeSectionReader(ukiPe, ".osrel")
+	if err != nil {
+		return fmt.Errorf("uki does not contain osrel: %v", err)
+	}
+
 	initrdDigest := sha256.New()
 	if _, err := io.Copy(initrdDigest, initrdSectionReader); err != nil {
+		return err
+	}
+
+	// Create CPIO archive with osrel contents
+	cpioBuffer := new(bytes.Buffer)
+	cpioWriter := cpio.NewWriter(cpioBuffer)
+
+	osrelContent := new(bytes.Buffer)
+	if _, err := osrelContent.ReadFrom(osrelSectionReader); err != nil {
+		return err
+	}
+
+	header := &cpio.Header{
+		Name: "/.extra/os-release",
+		Mode: 0444,
+		Size: int64(osrelContent.Len()),
+	}
+
+	if err := cpioWriter.WriteHeader(header); err != nil {
+		return err
+	}
+
+	if _, err := cpioWriter.Write(osrelContent.Bytes()); err != nil {
+		return err
+	}
+
+	if err := cpioWriter.Close(); err != nil {
+		return err
+	}
+
+	if _, err := io.Copy(initrdDigest, bytes.NewReader(cpioBuffer.Bytes())); err != nil {
 		return err
 	}
 
