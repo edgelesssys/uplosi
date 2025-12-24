@@ -47,7 +47,7 @@
             };
 
           # this needs to be updated together with go.mod / go.sum
-          vendorHash = "sha256-2lJmPNLpI1ksFb0EtcjPjyTy7eX1DKeX0F80k9FtGno=";
+          vendorHash = "sha256-9hMjqSCU74N9lTGcI0kuKTJNSXAhQBrnxq36L1gMFPA=";
 
           CGO_ENABLED = 0;
 
