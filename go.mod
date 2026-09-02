@@ -13,7 +13,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.5.0
 	github.com/BurntSushi/toml v1.4.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.195.0
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.71.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.97.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.2
 	github.com/aws/smithy-go v1.22.1
 	github.com/foxboron/go-uefi v0.0.0-20241017190036-fab4fdf2f2f3
