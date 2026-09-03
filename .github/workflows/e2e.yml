@@ -14,10 +14,6 @@ jobs:
       - uses: cachix/install-nix-action@08dcb3a5e62fa31e2da3d490afc4176ef55ecd72 # v30
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
-        with:
-          name: edgelesssys
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Build
         run: nix build .
 
@@ -38,9 +34,6 @@ jobs:
       - uses: cachix/install-nix-action@08dcb3a5e62fa31e2da3d490afc4176ef55ecd72 # v30
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
-        with:
-          name: edgelesssys
       - name: Login to Azure
         uses: ./.github/actions/login_azure
         with:
